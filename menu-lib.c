@@ -41,8 +41,8 @@ void display_menu(int y_max, int x_max)
 	fp = fopen("menu.json", "r");
 	fread(buffer, 1024, 1, fp);
 	fclose(fp);
-    speed_0 = atoi(get_json_data("text_speed_0", buffer));
-    speed_1 = atoi(get_json_data("text_speed_1", buffer));
+    speed_0 = get_json_data_int("text_speed_0", buffer);
+    speed_1 = get_json_data_int("text_speed_1", buffer);
 
     /* CREATE MENU WINDOW */
     getmaxyx(stdscr, y_max, x_max);
@@ -51,7 +51,7 @@ void display_menu(int y_max, int x_max)
     /* ACTIVATE ARROW KEYS */
     keypad(menuwin, true); 
 
-    options_length = get_json_options_length(buffer, "options");
+    options_length = get_json_options_length("options", buffer);
     choices = malloc(options_length * sizeof(char*));
 
     for (i = 0; i < options_length; i++)
@@ -90,7 +90,7 @@ void display_menu(int y_max, int x_max)
     /* FINAL MESSAGE */
     if (highlight == 0) /* It mean that it's play */
     {
-        story_length = get_json_options_length(buffer, "introduction");
+        story_length = get_json_options_length("introduction", buffer);
         parts = malloc(story_length * sizeof(char*));
 
         for (i = 0; i < story_length; i++)
@@ -98,7 +98,7 @@ void display_menu(int y_max, int x_max)
 
         parts = get_json_array_data(parts, "introduction", buffer);
 
-        if (atoi(get_json_data("show_debugger", buffer)) == 1)
+        if (get_json_data_boolean("show_debugger", buffer))
         {
             debug = create_newwin(12, 50, 2, 6);
             mvwprintw(debug, 1, 22, "Debugger");
