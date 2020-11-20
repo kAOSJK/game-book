@@ -1,0 +1,11 @@
+{
+	"options": ["Play", "Settings", "Quit"],
+	"text_speed_0": 50000,
+	"text_speed_1": 10000,
+	"show_debugger": 0,
+	"introduction": ["text", "text2", "text3", "ze-end"],
+	"text": "I was walking towards the strange discovery when I suddenly walked on a dead branch.$And a few people got out of the animal ! And this time, I recognized those animals, they are humans.$Mom told me to be aware of humans, they are dangerous. I have to get out !$The problem is that other humans came and now I'm encircled. I have to cross the human camp.",
+	"text2": "test text 22$ fonctionnel",
+	"text3": "test text 333$ fonctionnel",
+	"ze-end": "test the end$ fonctionnel",
+}
