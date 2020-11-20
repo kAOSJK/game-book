@@ -1,7 +1,7 @@
 #include <json-c/json.h>
 #include "lib.h"
 
-size_t get_json_options_length(char* buffer, char* key)
+size_t get_json_options_length(char* key, char* buffer)
 {
 	struct json_object *parsed_json; /* json object file */
 	struct json_object *options; /* json object options */
@@ -42,11 +42,31 @@ char* get_json_data(char* key, char* buffer)
 {
 	struct json_object *parsed_json; /* json object file */
 	struct json_object *data; /* json object data */
-	char* str;
 
 	parsed_json = json_tokener_parse(buffer);
 	json_object_object_get_ex(parsed_json, key, &data);
-	str = (char*)json_object_get_string(data);
 
-    return str;
+	return (char*)json_object_get_string(data);
+}
+
+bool get_json_data_boolean(char* key, char* buffer)
+{
+	struct json_object *parsed_json; /* json object file */
+	struct json_object *data; /* json object data */
+
+	parsed_json = json_tokener_parse(buffer);
+	json_object_object_get_ex(parsed_json, key, &data);
+
+	return (bool)json_object_get_boolean(data);
+}
+
+int get_json_data_int(char* key, char* buffer)
+{
+	struct json_object *parsed_json; /* json object file */
+	struct json_object *data; /* json object data */
+
+	parsed_json = json_tokener_parse(buffer);
+	json_object_object_get_ex(parsed_json, key, &data);
+
+	return (int)json_object_get_int(data);
 }
