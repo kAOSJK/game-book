@@ -13,7 +13,7 @@ char** sentence_separator(char* str);
 void write_story(char** story, WINDOW* win, int speed_0, int speed_1);
 void destroy_story(char** story);
 
-void display_menu(int y_max, int x_max)
+int display_menu(int y_max, int x_max)
 {
     /* JSON VARs */
     FILE *fp;
@@ -28,14 +28,10 @@ void display_menu(int y_max, int x_max)
     int choice;
     int i;
     int highlight = 0;
-    bool choosed_quit = false;
     /* STORY VARs */
     char** parts;
     int speed_0, speed_1;
     int story_length;
-    /* ANSWER VARs */
-    char* answer = (char*)malloc(sizeof(char) * 35);
-    char* new_answer = (char*)malloc(sizeof(char) * 35);
 
     /* READ AND GET JSON DATA */
 	fp = fopen("menu.json", "r");
@@ -121,31 +117,13 @@ void display_menu(int y_max, int x_max)
             clear_win(win);
         }
 
-        mvwprintw(debug, story_length + 6, 2, "I've charged all JSON key founded");
-        wrefresh(debug);
-    }
-    /* PROVISIONAL */
-    else
-    {
-        if (highlight == 1)
-            strcpy(answer, "You need to code the options part.");
-        else if (highlight == 2) 
-            choosed_quit = true;
-
-        while (1 && !choosed_quit)
+        if (get_json_data_boolean("show_debugger", buffer))
         {
-            for (i = 0; answer[i]; i++)
-            {
-                new_answer[i] = answer[i];
-                mvwprintw(win, 1, 2, new_answer);
-                fflush(stdout);
-                usleep(speed_0);
-                wrefresh(win);
-            }
-
-            if (wgetch(win) == 10) break;
+            mvwprintw(debug, story_length + 6, 2, "I've charged all JSON key founded");
+            wrefresh(debug);
         }
     }
+    return highlight;
 }
 
 void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
