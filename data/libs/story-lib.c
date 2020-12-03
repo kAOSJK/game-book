@@ -114,20 +114,23 @@ void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
 
 char** sentence_separator(char* str)
 {
-    char** tab_str;
-    char* token = strtok(str, CHAR_SEPARATOR);
+    char** tab_str = NULL;
+    char* token;
     size_t i = 0;
 
-    tab_str = (char**)malloc(sizeof(char*));
+    token = strtok(str, CHAR_SEPARATOR);
 
-    while (token != NULL)
+    while (token)
     {
-        tab_str = realloc(tab_str, sizeof(char*) * (i + 1));
-        tab_str[i] = (char*)malloc(sizeof(char) * (strlen(token) + 1));
-        tab_str[i] = token;
+        tab_str = realloc(tab_str, sizeof(char*) * ++i);
+        if (tab_str == NULL) exit(1);
+
+        tab_str[i - 1] = token;
         token = strtok(NULL, CHAR_SEPARATOR);
-        i++;
     }
+
+    tab_str = realloc(tab_str, sizeof(char*) * (i + 1));
+    tab_str[i + 1] = 0;
 
     return tab_str;
 }
