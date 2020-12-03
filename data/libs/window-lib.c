@@ -17,6 +17,7 @@ void destroy_win(WINDOW *local_win)
     wrefresh(local_win);
     wclear(local_win);
     delwin(local_win);
+    clear();
     refresh();
 }
 

@@ -29,14 +29,14 @@ int display_menu(int y_max, int x_max, char* buffer)
     /* ACTIVATE ARROW KEYS */
     keypad(menuwin, true); 
 
-    options_length = get_json_options_length("options", buffer);
+    options_length = get_json_options_length("menu", buffer);
     choices = malloc(options_length * sizeof(char*));
 
     for (i = 0; i < options_length; i++)
         choices[i] = malloc(10 * sizeof(char));
 
     /* GET JSON FILE DATA */
-    get_json_array_data(choices, "options", buffer);
+    get_json_array_data(choices, "menu", buffer);
 
     while (1)
     {

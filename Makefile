@@ -17,7 +17,7 @@ agility-lib.o: data/libs/agility-lib.c
 	$(CC) -oagility-lib.o -c data/libs/agility-lib.c $(CFLAGS) -lncurses
 
 story-lib.o: data/libs/story-lib.c
-	$(CC) -ostory-lib.o -c data/libs/story-lib.c -lncurses
+	$(CC) -ostory-lib.o -c data/libs/story-lib.c $(CFLAGS) -lncurses
 
 game.o: game.c data/libs/lib.h
 	$(CC) -ogame.o -c game.c -lncurses

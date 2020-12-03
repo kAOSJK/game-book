@@ -15,6 +15,9 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
     /* SCREEN VARs */
     WINDOW* win;
     WINDOW* debug;
+    /*
+    WINDOW* agilitywin;
+    bool succeed_agility;*/
 
     /* CREATE A WINDOW FOR OUR INPUT */
     win = create_newwin(6, x_max - 12, y_max - 8, 5);
@@ -49,6 +52,27 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
         mvwprintw(debug, story_length + 6, 2, "I've charged all JSON key founded");
         wrefresh(debug);
     }
+
+    /* new implémentation */
+    /*
+    if (get_json_data(parts[story_length - 1], buffer)[strlen(get_json_data(parts[story_length - 1], buffer)) - 1] == '*')
+    {
+        agilitywin = create_newwin(6, x_max - 12, y_max - 8, 5);
+        box(agilitywin, 0 , 0);
+        succeed_agility = agility(y_max, x_max, 7);
+        while (1)
+        {
+            if (succeed_agility)
+                mvwprintw(agilitywin, 1, 1, "You have passed the agility test: %c", get_json_data(parts[story_length - 1], buffer)[strlen(get_json_data(parts[story_length - 1], buffer)) - 1]);
+            else
+                mvwprintw(agilitywin, 1, 1, "You failed the agility test: %c", get_json_data(parts[story_length - 1], buffer)[strlen(get_json_data(parts[story_length - 1], buffer)) - 1]);
+            wrefresh(agilitywin);
+            if (wgetch(agilitywin) == 10) break;                             
+        }
+        destroy_win(agilitywin);
+    }*/
+
+    destroy_win(win);
 }
 
 void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
@@ -56,6 +80,7 @@ void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
     size_t i;
     size_t j;
     bool skip = false;
+    bool print_stop = false;
     int wait_time = speed_0;
 
     keypad(win, true);
@@ -75,7 +100,9 @@ void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
 
                 fflush(stdout);
                 usleep(wait_time);
-                mvwprintw(win, 1 + j, 2 + i, "%c", story[j][i]);
+                if (story[j][i] == '*') print_stop = true;
+                if (!print_stop)
+                    mvwprintw(win, 1 + j, 2 + i, "%c", story[j][i]);
                 wrefresh(win);
             }
         }

@@ -4,7 +4,7 @@
 #include <ncurses/ncurses.h>
 
 /* json-lib.c */
-char**  get_json_array_data(char** data, char* key, char* buffer);
+void    get_json_array_data(char** data, char* key, char* buffer);
 char*   get_json_data(char* key, char* buffer);
 size_t  get_json_options_length(char* key, char* buffer);
 bool    get_json_data_boolean(char* key, char* buffer);

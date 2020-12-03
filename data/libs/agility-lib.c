@@ -54,7 +54,7 @@ bool agility(int y_max, int x_max, int size)
                 validated++;
                 refresh_qte(menuwin, size, validated, qte);
             }
-            else if (input != -1) break; /* player failed */
+            else if (input != -1 && input != 10) break; /* player failed */
 
             if (j < 34) /* loading bar */
             {

@@ -15,7 +15,7 @@ size_t get_json_options_length(char* key, char* buffer)
     return n_options;
 }
 
-char** get_json_array_data(char** data, char* key, char* buffer)
+void get_json_array_data(char** data, char* key, char* buffer)
 {
 	struct json_object *parsed_json; /* json object file */
 	struct json_object *options; /* json object options */
@@ -34,8 +34,6 @@ char** get_json_array_data(char** data, char* key, char* buffer)
 		option = json_object_array_get_idx(options, i);
         data[i] = (char*)json_object_get_string(option);
 	}
-
-    return data;
 }
 
 char* get_json_data(char* key, char* buffer)
