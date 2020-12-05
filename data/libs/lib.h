@@ -23,7 +23,7 @@ bool agility(int y_max, int x_max, int size);
 
 /* story-lib.c */
 void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_length, char** parts, bool show_debug, char* buffer);
-void write_story(char** story, WINDOW* win, int speed_0, int speed_1);
+void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, int speed_1, char* next, bool show_debug);
 char** sentence_separator(char* str);
 
 #endif

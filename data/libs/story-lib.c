@@ -8,6 +8,7 @@
 #include "lib.h"
 
 #define CHAR_SEPARATOR "$"
+#define CHAR_SEPARATOR_2 "/"
 
 void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_length, char** parts, bool show_debug, char* buffer)
 {
@@ -17,9 +18,6 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
     WINDOW* debug;
     char** story = NULL;
     char **p = NULL;
-    /*
-    WINDOW* agilitywin;
-    bool succeed_agility;*/
 
     /* CREATE A WINDOW FOR OUR INPUT */
     win = create_newwin(6, x_max - 12, y_max - 8, 5);
@@ -47,7 +45,7 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
         
         /* WRITE STORY PART */
         story = sentence_separator(get_json_data(parts[i], buffer));
-        write_story(story, win, speed_0, speed_1);
+        write_story(story, win, y_max, x_max, speed_0, speed_1, parts[i + 1], show_debug);
         clear_win(win);
 
         if (story != NULL)
@@ -58,35 +56,25 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
 	    }
     }
 
-    /* new implémentation */
-    /*
-    if (get_json_data(parts[story_length - 1], buffer)[strlen(get_json_data(parts[story_length - 1], buffer)) - 1] == '*')
-    {
-        agilitywin = create_newwin(6, x_max - 12, y_max - 8, 5);
-        box(agilitywin, 0 , 0);
-        succeed_agility = agility(y_max, x_max, 7);
-        while (1)
-        {
-            if (succeed_agility)
-                mvwprintw(agilitywin, 1, 1, "You have passed the agility test: %c", get_json_data(parts[story_length - 1], buffer)[strlen(get_json_data(parts[story_length - 1], buffer)) - 1]);
-            else
-                mvwprintw(agilitywin, 1, 1, "You failed the agility test: %c", get_json_data(parts[story_length - 1], buffer)[strlen(get_json_data(parts[story_length - 1], buffer)) - 1]);
-            wrefresh(agilitywin);
-            if (wgetch(agilitywin) == 10) break;                             
-        }
-        destroy_win(agilitywin);
-    }*/
-
     destroy_win(win);
     if (show_debug) destroy_win(debug);
 }
 
-void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
+void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, int speed_1, char* next, bool show_debug)
 {
     size_t i, j;
     bool skip = false;
     bool print_stop = false;
     int wait_time = speed_0;
+    /* AGILITY VARs */
+    WINDOW* agilitywin;
+    bool succeed_agility;
+    bool need_agility;
+    bool encounter_separator = false;
+    char* win_dir = NULL;
+    char* lose_dir = NULL;
+    char* token = NULL;
+    int index_agility;
 
     keypad(win, true);
 
@@ -105,7 +93,12 @@ void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
 
                 fflush(stdout);
                 usleep(wait_time);
-                if (story[j][i] == '*') print_stop = true;
+                if (story[j][i] == '*')
+                {
+                    print_stop = true;
+                    need_agility = true;
+                    index_agility = i;
+                }
                 if (!print_stop)
                     mvwprintw(win, 1 + j, 2 + i, "%c", story[j][i]);
                 wrefresh(win);
@@ -113,7 +106,70 @@ void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
         }
         nodelay(win, false);
 
+        mvwprintw(win, 0, 1, "%c", story[j - 1][index_agility + 1]);
+        wrefresh(win);
+
         if (wgetch(win) == 10) break;
+    }
+
+    /* AGILITY TEST COMING RIGHT AFTER */
+    if (need_agility)
+    {
+        clear_win(win);
+        if (story[j - 1][index_agility + 1] - 48 > 0 && story[j - 1][index_agility + 1] - 48 <= 9)
+            succeed_agility = agility(y_max, x_max, story[j - 1][index_agility + 1] - 48);
+        else
+            succeed_agility = agility(y_max, x_max, 5);
+        
+        token = strtok(story[j - 1], CHAR_SEPARATOR_2);
+        
+        while (token)
+		{
+            if (!encounter_separator)
+            {
+                token = strtok(NULL, CHAR_SEPARATOR_2);
+                win_dir = malloc(strlen(token) + 1);
+                if (win_dir != NULL) strcpy(win_dir, token);
+                encounter_separator = true;
+            }
+            else
+            {
+                lose_dir = malloc(strlen(token) + 1);
+                if (lose_dir != NULL) strcpy(lose_dir, token);
+            }
+            token = strtok(NULL, CHAR_SEPARATOR_2);
+		}
+
+        while (1)
+        {
+            if (show_debug)
+            {
+                agilitywin = create_newwin(6, x_max - 12, y_max - 8, 5);
+                box(agilitywin, 0 , 0);
+            }
+
+            if (succeed_agility)
+            {
+                if (show_debug) mvwprintw(agilitywin, 1, 2, "you win, jumping into key :%s", win_dir);
+                if (next != NULL) strcpy(next, win_dir);
+            }
+            else
+            {
+                if (show_debug)
+                    mvwprintw(agilitywin, 1, 2, "you lost, jumping into key :%s", lose_dir);
+                if (next != NULL) strcpy(next, lose_dir);
+            }
+
+            if (show_debug)
+            {
+                wrefresh(agilitywin);
+                if (wgetch(agilitywin) == 10) break;
+            } else break;                             
+        }
+
+        free(win_dir);
+        free(lose_dir);
+        destroy_win(agilitywin);
     }
 }
 
