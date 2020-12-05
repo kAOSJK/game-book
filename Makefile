@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -std=c89 -pedantic -Wall -Werror -Wextra
 
 game_sample: game.o json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o
-	$(CC) -ogame_sample json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game.o -lncurses -ljson-c -static -static-libgcc
+	$(CC) -ogame_sample json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game.o -lncurses -ljson-c -static -static-libgcc && make clear
 
 menu-lib.o: data/libs/menu-lib.c
 	$(CC) -omenu-lib.o -c data/libs/menu-lib.c $(CFLAGS) -lncurses
@@ -26,4 +26,4 @@ clear:
 	rm *.o
 
 clean:
-	rm *.o game_sample.exe
+	rm *.o game_sample.exe debug.exe

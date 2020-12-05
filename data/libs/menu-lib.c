@@ -7,10 +7,6 @@
 #include <unistd.h>
 #include "lib.h"
 
-char** sentence_separator(char* str);
-void write_story(char** story, WINDOW* win, int speed_0, int speed_1);
-void destroy_story(char** story);
-
 int display_menu(int y_max, int x_max, char* buffer)
 {
     /* SCREEN VARs */

@@ -11,10 +11,12 @@
 
 void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_length, char** parts, bool show_debug, char* buffer)
 {
-    int i;
+    int i, j;
     /* SCREEN VARs */
     WINDOW* win;
     WINDOW* debug;
+    char** story = NULL;
+    char **p = NULL;
     /*
     WINDOW* agilitywin;
     bool succeed_agility;*/
@@ -31,26 +33,29 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
         wrefresh(debug);
     }
 
-    for (i = 0; i < story_length; i++)
+    for (i = 0, j = 0; i < story_length; i++)
     {
         /* DEBUG PART */
         if (show_debug)
         {
-            mvwprintw(debug, i + 5, 2, "key \"%s\" at index:%d", parts[i], i);
-            mvwprintw(debug, i + 5, 40, "i: %d", i);
+            if (j == 6) j = 0;
+            mvwprintw(debug, j + 5, 2, "key \"%s\" at index:%d", parts[i], i);
+            mvwprintw(debug, j + 5, 40, "i: %d", i);
             wrefresh(debug);
+            j++;
         }
         
         /* WRITE STORY PART */
-        write_story(sentence_separator(get_json_data(parts[i], buffer)), win, speed_0, speed_1);
+        story = sentence_separator(get_json_data(parts[i], buffer));
+        write_story(story, win, speed_0, speed_1);
         clear_win(win);
-    }
 
-    /* DEBUG PART */
-    if (show_debug)
-    {
-        mvwprintw(debug, story_length + 6, 2, "I've charged all JSON key founded");
-        wrefresh(debug);
+        if (story != NULL)
+	    {
+            for (p = story; *p; ++p) puts(*p);
+            for (p = story; *p; ++p) free(*p);
+            free(story);
+	    }
     }
 
     /* new implémentation */
@@ -73,12 +78,12 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
     }*/
 
     destroy_win(win);
+    if (show_debug) destroy_win(debug);
 }
 
 void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
 {
-    size_t i;
-    size_t j;
+    size_t i, j;
     bool skip = false;
     bool print_stop = false;
     int wait_time = speed_0;
@@ -114,23 +119,30 @@ void write_story(char** story, WINDOW* win, int speed_0, int speed_1)
 
 char** sentence_separator(char* str)
 {
-    char** tab_str = NULL;
-    char* token;
-    size_t i = 0;
+	char** array = malloc(sizeof(char*));
+    char** tmp = NULL;
+    char* token = NULL;
+    size_t n;
 
-    token = strtok(str, CHAR_SEPARATOR);
+	if (array)
+	{
+        n = 1;
+		token = strtok(str, CHAR_SEPARATOR);
+		while (token)
+		{
+			tmp = realloc(array, (n + 1) * sizeof(char*));
+			if (tmp == NULL) break;
 
-    while (token)
-    {
-        tab_str = realloc(tab_str, sizeof(char*) * ++i);
-        if (tab_str == NULL) exit(1);
+			array = tmp;
+			++n;
 
-        tab_str[i - 1] = token;
-        token = strtok(NULL, CHAR_SEPARATOR);
-    }
+			array[n - 2] = malloc(strlen(token) + 1);
+			if (array[n - 2] != NULL) strcpy(array[n - 2], token);
+			token = strtok(NULL, CHAR_SEPARATOR);
+		}
 
-    tab_str = realloc(tab_str, sizeof(char*) * (i + 1));
-    tab_str[i + 1] = 0;
+		array[n - 1] = NULL;
+	}
 
-    return tab_str;
+	return array;
 }

@@ -16,15 +16,22 @@ int main()
 {
     /* JSON VARs */
     FILE *fp;
-	char buffer[1024];
-
+	char* buffer;
+    size_t size;
+    
     int menu_answer;
     int y_max, x_max;
     WINDOW* win;
 
     /* READ AND GET JSON DATA */
 	fp = fopen("data/data.json", "r");
-	fread(buffer, 1024, 1, fp);
+
+    fseek(fp, 0L, SEEK_END);
+    size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    buffer = (char*)malloc(sizeof(char) * size + 1);
+	fread(buffer, size, 1, fp);
 	fclose(fp);
 
     initscr();

@@ -1,15 +1,15 @@
 {
 	"menu": ["Play", "Agility", "Quit"],
-	"text_speed_0": 50000,
-	"text_speed_1": 10000,
-	"show_debugger": false,
-	"story": ["introduction", "part1"],
-		"introduction": ["text", "text2", "text3", "ze-end"],
-			"text": "I was walking towards the strange discovery when I suddenly walked on a dead branch.$And a few people got out of the animal ! And this time, I recognized those animals, they are humans.$Mom told me to be aware of humans, they are dangerous. I have to get out !$The problem is that other humans came and now I'm encircled. I have to cross the human camp.",
-			"text2": "test text 22$ fonctionnel",
-			"text3": "test text 333$ fonctionnel",
-			"ze-end": "test the end$ fonctionnel*5", // *5 mean that an agility test is going right after that the text is print
-		"part1": ["debut", "fin"],
-			"debut": "yes$ ",
-			"fin": "no$ ",
+	"text_speed_0": 1,
+	"text_speed_1": 10,
+	"show_debugger": true,
+	"story": ["introduction"],
+		"introduction": ["flash1", "flash2", "flash3", "flash4", "flash5", "flash6", "flash7", "flash1", "flash2", "flash3", "flash4", "flash5", "flash6", "flash7"],
+			"flash1": "Oh no, they're right behind me, bloody humans!$They manage to chase me even when I'm running between the trees.$I have to improvise,$I have three choices in front of me : ",
+			"flash2": "I can try to 'run' on the lush vegetation.$I can try to 'call' for help$Or I can 'cross' the road to escape more easily.", //choix
+			"flash3": "I see right in front of me a large threatening silhouette.$I have to choose quickly.$I can Try to 'attack' him,$Or I can try to 'escape', he's stronger than me. ",
+			"flash4": "I must run, argh$I am hurt!", //"test d'agilité"  *<impossible>
+			"flash5": "Oh no, they're right behind me, bloody humans!$They manage to chase me even when I'm running between the trees.$I have to improvise,$I have three choices in front of me : ",
+			"flash6": "I can try to 'run' on the lush vegetation.$I can try to 'call' for help$Or I can 'cross' the road to escape more easily.", //choix
+			"flash7": "I see right in front of me a large threatening silhouette.$I have to choose quickly.$I can Try to 'attack' him,$Or I can try to 'escape', he's stronger than me. ",
 }
