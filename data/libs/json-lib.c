@@ -68,3 +68,44 @@ int get_json_data_int(char* key, char* buffer)
 
 	return (int)json_object_get_int(data);
 }
+
+void get_json_object_data(char* object_key, char* buffer)
+{
+	struct json_object *parsed_json; /* json object file */
+	struct json_object *data; /* json object data */
+
+	parsed_json = json_tokener_parse(buffer);
+	json_object_object_get_ex(parsed_json, object_key, &data);
+
+	json_object_object_foreach(data, key, val)
+	{
+		printf("key: %s, ", key);
+		printf("val: %s\n", (char*)json_object_get_string(val));
+	}
+}
+
+int change_json_object_data(char* object_key, unsigned int index_key, char* value_to_assign, char* buffer)
+{
+	struct json_object *parsed_json; /* json object file */
+	struct json_object *data; /* json object data */
+	unsigned int i = 0;
+	int answer = 0;
+
+	parsed_json = json_tokener_parse(buffer);
+	json_object_object_get_ex(parsed_json, object_key, &data);
+
+	json_object_object_foreach(data, key, val)
+	{
+		if (i == index_key)
+		{
+			if (json_object_set_string(val, value_to_assign) == 1)
+			{
+				answer = 1;
+				printf("\nchanged \"%s\" key with value \"%s\"\n\n", key, value_to_assign);
+			}
+		}
+		i++;
+	}
+
+	return answer;
+}

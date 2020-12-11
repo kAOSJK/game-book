@@ -10,7 +10,7 @@
 #define CHAR_SEPARATOR "$"
 #define CHAR_SEPARATOR_2 "/"
 
-void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_length, char** parts, bool show_debug, char* buffer)
+void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_length, char** parts, bool show_debug, char* buffer, char* name)
 {
     int i, j;
     /* SCREEN VARs */
@@ -44,13 +44,13 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
         }
         
         /* WRITE STORY PART */
-        story = sentence_separator(get_json_data(parts[i], buffer));
-        write_story(story, win, y_max, x_max, speed_0, speed_1, parts[i + 1], show_debug);
-        clear_win(win);
-
+        story = sentence_separator(get_json_data(parts[i], buffer), CHAR_SEPARATOR);
         if (story != NULL)
 	    {
-            for (p = story; *p; ++p) puts(*p);
+            write_story(story, win, y_max, x_max, speed_0, speed_1, parts[i + 1], show_debug, name);
+            clear_win(win);
+
+            /* FREE STORY */
             for (p = story; *p; ++p) free(*p);
             free(story);
 	    }
@@ -60,7 +60,7 @@ void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_lengt
     if (show_debug) destroy_win(debug);
 }
 
-void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, int speed_1, char* next, bool show_debug)
+void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, int speed_1, char* next, bool show_debug, char* name)
 {
     size_t i, j;
     bool skip = false;
@@ -75,13 +75,20 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
     char* lose_dir = NULL;
     char* token = NULL;
     int index_agility;
+    /* NAME VARs */
+    unsigned int k = 0;
+    unsigned int wrote_name;
+    unsigned int n = 0;
 
     keypad(win, true);
+
+    while (name[n + 1]) n++;
 
     while (1)
     {
         for (j = 0; story[j]; j++)
         {
+            wrote_name = 0;
             for (i = 0; story[j][i]; i++)
             {
                 if (!skip)
@@ -98,21 +105,36 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
                     print_stop = true;
                     need_agility = true;
                     index_agility = i;
+                } else if (story[j][i] == '&')
+                {
+                    while (name[k])
+                    {
+                        mvwprintw(win, 1 + j, 2 + i + k + (n * wrote_name), "%c", name[k]);
+                        fflush(stdout);
+                        usleep(wait_time);
+                        k++;
+                    }
+                    k = 0;
+                    wrote_name++;
                 }
-                if (!print_stop)
+
+                if (!print_stop && !wrote_name)
                     mvwprintw(win, 1 + j, 2 + i, "%c", story[j][i]);
+                else if (!print_stop)
+                {
+                    if (story[j][i] != '&')
+                        mvwprintw(win, 1 + j, 2 + i + (n * wrote_name), "%c", story[j][i]);
+                }
+                
                 wrefresh(win);
             }
         }
         nodelay(win, false);
 
-        mvwprintw(win, 0, 1, "%c", story[j - 1][index_agility + 1]);
-        wrefresh(win);
-
         if (wgetch(win) == 10) break;
     }
 
-    /* AGILITY TEST COMING RIGHT AFTER */
+    /* AGILITY TEST COMING RIGHT AFTER IF CALLED */
     if (need_agility)
     {
         clear_win(win);
@@ -142,6 +164,7 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
 
         while (1)
         {
+            /* DEBUG TO DELETE */
             if (show_debug)
             {
                 agilitywin = create_newwin(6, x_max - 12, y_max - 8, 5);
@@ -160,6 +183,7 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
                 if (next != NULL) strcpy(next, lose_dir);
             }
 
+            /* DEBUG TO DELETE */
             if (show_debug)
             {
                 wrefresh(agilitywin);
@@ -171,34 +195,4 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
         free(lose_dir);
         destroy_win(agilitywin);
     }
-}
-
-char** sentence_separator(char* str)
-{
-	char** array = malloc(sizeof(char*));
-    char** tmp = NULL;
-    char* token = NULL;
-    size_t n;
-
-	if (array)
-	{
-        n = 1;
-		token = strtok(str, CHAR_SEPARATOR);
-		while (token)
-		{
-			tmp = realloc(array, (n + 1) * sizeof(char*));
-			if (tmp == NULL) break;
-
-			array = tmp;
-			++n;
-
-			array[n - 2] = malloc(strlen(token) + 1);
-			if (array[n - 2] != NULL) strcpy(array[n - 2], token);
-			token = strtok(NULL, CHAR_SEPARATOR);
-		}
-
-		array[n - 1] = NULL;
-	}
-
-	return array;
 }
