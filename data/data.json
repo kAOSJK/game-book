@@ -4,32 +4,90 @@
   "text_speed_0": 1,
   "text_speed_1": 10,
   "show_debugger": false,
-  "story": ["introduction"],
-  "introduction": [
-    "flash1",
-    "flash2",
-    "flash3",
-    "flash4",
-    "suite",
-    "flash7",
-    "flash1",
-    "flash2",
-    "flash3",
-    "flash4",
-    "hey"
-  ],
-  "flash1": "Oh no &, they're right behind me, bloody & humans!$They manage to chase me even when I'm running between the trees.$I have to improvise,$I have three choices in front of me :",
-  "flash2": "I can try to 'run' on the lush vegetation.$I can try to 'call' for help$Or I can 'cross' the road to escape more easily.", //choix
-  "flash3": "I see right in front of me a large threatening silhouette.$I have to choose quickly.$I can Try to 'attack' him,$Or I can try to 'escape', he's stronger than me.",
-  "flash4": "I must run, argh$I am hurt!*3/wflash4/lflash4", //"test d'agilité"  *<impossible>
-  "wflash4": "You won",
-  "lflash4": "You lost", //choix
-  "flash7": "I see right in front of me a large threatening silhouette.$I have to choose quickly.$I can Try to 'attack' him,$Or I can try to 'escape', he's stronger than me.",
-	"player":
-	{
-		"name": "&",
-		"mental": 0,
-		"trust": 0,
-		"agility": 0,
-	}
-},
+  "entry_keys": ["flash1", "quit"],
+  "stori": [
+    {
+      "introduction": [
+        {
+          "key": "flash1",
+          "text": "Hello what you want to do ?",
+          "choices": [
+            { "text": "courrir", "next_key": "flash2" },
+            { "text": "quittez", "next_key": "flash3" },
+            {
+              "text": "dance",
+              "needed_skill": "agility",
+              "needed_value": -7,
+              "next_key": "dance"
+            }
+          ]
+        },
+        {
+          "key": "flash2",
+          "text": "Hello mate ?",
+          "choices": [
+            { "text": "bye u suck", "next_key": "flash3" },
+            { "text": "quit", "next_key": "quit" }
+          ]
+        },
+        {
+          "key": "flash3",
+          "text": "Bye mate",
+          "test": {
+            "type": "agility",
+            "difficulty": 7,
+            "win_next_key": "won_agi0",
+            "lose_next_key": "lost_agi0"
+          }
+        },
+        {
+          "key": "won_agi0",
+          "text": "You won freedom",
+          "next_key": ""
+        },
+        {
+          "key": "lost_agi0",
+          "text": "You are dead cuz you lose the test.",
+          "next_key": ""
+        },
+        {
+          "key": "quit",
+          "text": "Quitte la partie",
+          "next_key": ""
+        },
+        {
+          "key": "run",
+          "text": "Vous courrez tres vite!",
+          "next_key": ""
+        },
+        {
+          "key": "dance",
+          "text": "Vous dansez bien!",
+          "next_key": ""
+        }
+      ]
+    },
+    {
+      "part 1": [
+        {
+          "key": "flash7",
+          "text": "Hello what you want to do ?",
+          "choices": [
+            { "text": "!run", "next_key": "run" },
+            { "text": "!quit", "next_key": "quit" }
+          ]
+        },
+        {
+          "key": "run",
+          "text": "Vous courrez",
+          "next_key": ""
+        },
+        {
+          "key": "quit",
+          "text": "mauvais",
+          "next_key": "flash7"
+        }
+      ]
+    }
+  ]
+}

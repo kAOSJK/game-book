@@ -1,40 +1,38 @@
 #include <string.h>
 #include <stdlib.h>
-#include <ncurses/ncurses.h>
 #include <unistd.h>
 #include <time.h>
 #include "lib.h"
 
 int get_key(char input);
-void refresh_qte(WINDOW* win, int size, int validated, char* qte);
-char* randomize_qte(int size);
+void refresh_qte(WINDOW *win, int size, int validated, char *qte);
+char *randomize_qte(int size);
 
 bool agility(int y_max, int x_max, int size)
 {
     /* SCREEN VARs */
-    WINDOW* menuwin;
-    WINDOW* loadwin;
+    WINDOW *menuwin;
+    WINDOW *loadwin;
 
     /* DATA VARs */
     int input;
     int j = 0;
     int highlight = 0;
     int validated = 0;
-    char* qte;
-    char* str;
+    char *qte;
+    char *str;
 
-    str = (char*)malloc(sizeof(char) * 37);
+    str = (char *)malloc(sizeof(char) * 37);
 
     /* CREATE A WINDOW FOR OUR INPUT */
     menuwin = create_newwin(3, 36, y_max / 2 - 1.5, x_max / 2 - 9);
     wborder(menuwin, '|', '|', '-', '-', '+', '+', '+', '+');
-    
-    loadwin = create_newwin(3, 36, y_max / 2 - 5.5 , x_max / 2 - 9);
-    box(loadwin, 0 , 0);
+
+    loadwin = create_newwin(3, 36, y_max / 2 - 5.5, x_max / 2 - 9);
+    box(loadwin, 0, 0);
 
     keypad(menuwin, true); /* Activate arrow keys */
 
-    qte = (char*)malloc((size + 1) * sizeof(char));
     qte = randomize_qte(size);
 
     start_color();
@@ -45,16 +43,17 @@ bool agility(int y_max, int x_max, int size)
     {
         if (validated <= size)
         {
-            nodelay(menuwin, true); /* non blocking getch */
+            nodelay(menuwin, true);  /* non blocking getch */
             input = wgetch(menuwin); /* player's getch */
-            
+
             if (input == get_key(qte[validated])) /* player success one qte's letter */
             {
                 highlight++;
                 validated++;
                 refresh_qte(menuwin, size, validated, qte);
             }
-            else if (input != -1 && input != 10) break; /* player failed */
+            else if (input != -1 && input != 10)
+                break; /* player failed */
 
             if (j < 34) /* loading bar */
             {
@@ -64,17 +63,22 @@ bool agility(int y_max, int x_max, int size)
                 fflush(stdout);
                 usleep(100000);
                 j++;
-            } else break;
+            }
+            else
+                break;
 
-            if (validated == size) break; /* successed qte */
+            if (validated == size)
+                break; /* successed qte */
         }
     }
+
+    /* Free */
+    free(str);
+    free(qte);
 
     /* Delete windows */
     destroy_win(menuwin);
     destroy_win(loadwin);
-    clear();
-    refresh();
 
     /* FINAL MESSAGE */
     if (validated == size)
@@ -83,7 +87,7 @@ bool agility(int y_max, int x_max, int size)
         return false;
 }
 
-void refresh_qte(WINDOW* win, int size, int validated, char* qte)
+void refresh_qte(WINDOW *win, int size, int validated, char *qte)
 {
     int i;
 
@@ -97,21 +101,25 @@ void refresh_qte(WINDOW* win, int size, int validated, char* qte)
     }
 }
 
-char* randomize_qte(int size)
+char *randomize_qte(int size)
 {
     int n;
     int i;
-    char* randomized;
-    randomized = (char*)malloc(sizeof(char) * size);
+    char *randomized;
+    randomized = (char *)malloc(sizeof(char) * size);
 
     srand(time(NULL));
     for (i = 0; i < size; i++)
     {
         n = rand() % 4; /* randomize n between 0 and 4 */
-        if (n == 0) randomized[i] = 'Z';
-        else if (n == 1) randomized[i] = 'Q';
-        else if (n == 2) randomized[i] = 'S';
-        else randomized[i] = 'D';
+        if (n == 0)
+            randomized[i] = 'Z';
+        else if (n == 1)
+            randomized[i] = 'Q';
+        else if (n == 2)
+            randomized[i] = 'S';
+        else
+            randomized[i] = 'D';
     }
 
     return randomized;

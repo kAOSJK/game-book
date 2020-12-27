@@ -3,16 +3,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <ncurses/ncurses.h>
 #include <unistd.h>
 #include "lib.h"
 
-int display_menu(int y_max, int x_max, char* buffer)
+int display_menu(int y_max, int x_max, char *buffer)
 {
     /* SCREEN VARs */
-    WINDOW* menuwin;
+    WINDOW *menuwin;
     /* DATA VARs */
-    char** choices;
+    char **choices;
     int options_length;
     int choice;
     int i;
@@ -23,13 +22,10 @@ int display_menu(int y_max, int x_max, char* buffer)
     menuwin = create_newwin(6, 12, y_max / 2 - 3, x_max / 2 - 6);
 
     /* ACTIVATE ARROW KEYS */
-    keypad(menuwin, true); 
+    keypad(menuwin, true);
 
     options_length = get_json_options_length("menu", buffer);
-    choices = malloc(options_length * sizeof(char*));
-
-    for (i = 0; i < options_length; i++)
-        choices[i] = malloc(10 * sizeof(char));
+    choices = malloc(sizeof(char *) * options_length);
 
     /* GET JSON FILE DATA */
     get_json_array_data(choices, "menu", buffer);
@@ -46,18 +42,27 @@ int display_menu(int y_max, int x_max, char* buffer)
 
         choice = wgetch(menuwin);
 
-        switch (choice) 
+        switch (choice)
         {
-            case KEY_DOWN: highlight == options_length - 1 ? highlight = 0 : highlight++; break;
-            case KEY_UP:   highlight == 0 ? highlight = options_length - 1 : highlight--; break;
-            case 'p':      getchar(); break;
-            default:       break;
+        case KEY_DOWN:
+            highlight == options_length - 1 ? highlight = 0 : highlight++;
+            break;
+        case KEY_UP:
+            highlight == 0 ? highlight = options_length - 1 : highlight--;
+            break;
+        default:
+            break;
         }
-        if (choice == 10) break;
+
+        if (choice == 10)
+            break;
     }
+
+    for (i = 0; i < options_length; i++)
+        free(choices[i]);
+    free(choices);
+
     destroy_win(menuwin);
-    clear();
-    refresh();
 
     return highlight;
 }

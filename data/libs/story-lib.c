@@ -3,78 +3,111 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <ncurses/ncurses.h>
 #include <unistd.h>
 #include "lib.h"
 
 #define CHAR_SEPARATOR "$"
 #define CHAR_SEPARATOR_2 "/"
 
-void begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_length, char** parts, bool show_debug, char* buffer, char* name)
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
 {
-    int i, j;
-    /* SCREEN VARs */
-    WINDOW* win;
-    WINDOW* debug;
-    char** story = NULL;
-    char **p = NULL;
+    WINDOW *win;
+    part *current_part;
+    char **text = NULL;
+    char **temp = NULL;
+    char *key = NULL;
+
+    /* TEST VARs*/
+    int test_difficulty;
+    bool result;
 
     /* CREATE A WINDOW FOR OUR INPUT */
     win = create_newwin(6, x_max - 12, y_max - 8, 5);
-    
-    /* DEBUG PART */
-    if (show_debug)
-    {
-        debug = create_newwin(12, 50, 2, 6);
-        mvwprintw(debug, 1, 22, "Debugger");
-        mvwprintw(debug, 3, 2, "Charged the JSON following key:");
-        wrefresh(debug);
-    }
 
-    for (i = 0, j = 0; i < story_length; i++)
+    /* GET FIRST CHAPTER KEY */
+    key = get_first_key(chapter_index, buffer);
+
+    if (key != NULL)
+        current_part = get_part_data(parsed_story, key, chapter_index, buffer);
+
+    if (current_part != NULL)
+        text = sentence_separator(current_part->text, CHAR_SEPARATOR);
+
+    while (text != NULL)
     {
-        /* DEBUG PART */
-        if (show_debug)
+        /* WRITE STORY */
+        write_text(text, win, y_max, x_max, speed_0, speed_1, name);
+        clear_win(win);
+
+        /* FREE KEY */
+        free(key);
+        key = NULL;
+
+        if (current_part->next_key != NULL && *current_part->next_key != 0)
         {
-            if (j == 6) j = 0;
-            mvwprintw(debug, j + 5, 2, "key \"%s\" at index:%d", parts[i], i);
-            mvwprintw(debug, j + 5, 40, "i: %d", i);
-            wrefresh(debug);
-            j++;
+            /* mean that the next key is linear */
+            key = strdup(current_part->next_key);
         }
-        
-        /* WRITE STORY PART */
-        story = sentence_separator(get_json_data(parts[i], buffer), CHAR_SEPARATOR);
-        if (story != NULL)
-	    {
-            write_story(story, win, y_max, x_max, speed_0, speed_1, parts[i + 1], show_debug, name);
-            clear_win(win);
+        else if (current_part->choices != NULL)
+        {
+            /* mean that the next key depends on player's choice */
+            key = get_user_choices(win, current_part->choices, usr_buffer);
+        }
+        else if (current_part->test != NULL)
+        {
+            /* mean that the next key depends on player's result on a test */
+            test_difficulty = json_object_get_int(json_object_object_get(current_part->test, "difficulty"));
 
-            /* FREE STORY */
-            for (p = story; *p; ++p) free(*p);
-            free(story);
-	    }
+            /* stop displaying win (during the test) */
+            werase(win);
+            wrefresh(win);
+
+            result = agility(y_max, x_max, test_difficulty);
+
+            if (result == true) /* mean that the player succeed the test */
+                key = strdup((char *)json_object_get_string(json_object_object_get(current_part->test, "win_next_key")));
+            else /* mean that the player failed the test */
+                key = strdup((char *)json_object_get_string(json_object_object_get(current_part->test, "lose_next_key")));
+            clear_win(win);
+        }
+
+        /* FREE CURRENT PART */
+        free_part(current_part);
+        current_part = NULL;
+
+        /* FREE TEXT */
+        for (temp = text; *temp; ++temp)
+            free(*temp);
+        free(text);
+        text = NULL;
+
+        /* mean that this is the end of this chapter */
+        if (key == NULL)
+            break;
+
+        current_part = get_part_data(parsed_story, key, chapter_index, buffer);
+        if (current_part == NULL)
+        {
+            /* FREE KEY */
+            free(key);
+            key = NULL;
+
+            fprintf(stderr, "error: can't find part with the key %s\n", key);
+            break;
+        }
+
+        text = sentence_separator(current_part->text, CHAR_SEPARATOR);
     }
 
     destroy_win(win);
-    if (show_debug) destroy_win(debug);
 }
 
-void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, int speed_1, char* next, bool show_debug, char* name)
+void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name)
 {
     size_t i, j;
     bool skip = false;
     bool print_stop = false;
     int wait_time = speed_0;
-    /* AGILITY VARs */
-    WINDOW* agilitywin;
-    bool succeed_agility;
-    bool need_agility;
-    bool encounter_separator = false;
-    char* win_dir = NULL;
-    char* lose_dir = NULL;
-    char* token = NULL;
-    int index_agility;
     /* NAME VARs */
     unsigned int k = 0;
     unsigned int wrote_name;
@@ -82,7 +115,8 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
 
     keypad(win, true);
 
-    while (name[n + 1]) n++;
+    while (name[n + 1])
+        n++;
 
     while (1)
     {
@@ -103,9 +137,8 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
                 if (story[j][i] == '*')
                 {
                     print_stop = true;
-                    need_agility = true;
-                    index_agility = i;
-                } else if (story[j][i] == '&')
+                }
+                else if (story[j][i] == '&')
                 {
                     while (name[k])
                     {
@@ -125,74 +158,139 @@ void write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, i
                     if (story[j][i] != '&')
                         mvwprintw(win, 1 + j, 2 + i + (n * wrote_name), "%c", story[j][i]);
                 }
-                
+
                 wrefresh(win);
             }
         }
         nodelay(win, false);
 
-        if (wgetch(win) == 10) break;
+        if (wgetch(win) == 10)
+            break;
+    }
+}
+
+char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer)
+{
+    /* DATA VARs */
+    char *answer = NULL;                  /* the final choice text (next key) */
+    char *option = NULL;                  /* text of a choice that the player can made */
+    unsigned int options_length = 0;      /* option length not caring about player skills */
+    unsigned int real_options_length = 0; /* real player option length */
+    int choice = 0;                       /* player selection */
+    int highlight = 0;                    /* to hightlight the right player selection */
+    int i = 0;
+
+    /* SPECIAL CHOICES VARs */
+    json_object *obj_needed_skill = NULL;
+    json_object *obj_needed_value = NULL;
+    char *type = NULL;
+    bool encounter_sc = false;
+
+    /* ACTIVATE ARROW KEYS */
+    keypad(win, true);
+
+    /* ACTIVATE NCURSES COLORS */
+    start_color();
+    init_pair(1, COLOR_CYAN, COLOR_BLACK);
+
+    options_length = (int)array_list_length(choices);
+    for (i = 0; i < options_length; i++)
+    {
+        json_object_object_get_ex(array_list_get_idx(choices, i), "needed_skill", &obj_needed_skill);
+        if (obj_needed_skill)
+        {
+            encounter_sc = true;
+            json_object_object_get_ex(array_list_get_idx(choices, i), "needed_value", &obj_needed_value);
+            type = (char *)json_object_get_string(obj_needed_skill);
+            if (json_object_get_int(obj_needed_value) > 0)
+            {
+                if (get_json_data_int(type, usr_buffer) >= json_object_get_int(obj_needed_value))
+                    real_options_length++;
+            }
+            else if (json_object_get_int(obj_needed_value) < 0)
+            {
+                if (get_json_data_int(type, usr_buffer) <= ((int)json_object_get_int(obj_needed_value) * -1))
+                    real_options_length++;
+            }
+        }
+        else
+            real_options_length++;
     }
 
-    /* AGILITY TEST COMING RIGHT AFTER IF CALLED */
-    if (need_agility)
+    if (encounter_sc == false)
+        real_options_length = options_length;
+
+    while (1)
     {
-        clear_win(win);
-        if (story[j - 1][index_agility + 1] - 48 > 0 && story[j - 1][index_agility + 1] - 48 <= 9)
-            succeed_agility = agility(y_max, x_max, story[j - 1][index_agility + 1] - 48);
-        else
-            succeed_agility = agility(y_max, x_max, 5);
-        
-        token = strtok(story[j - 1], CHAR_SEPARATOR_2);
-        
-        while (token)
-		{
-            if (!encounter_separator)
-            {
-                token = strtok(NULL, CHAR_SEPARATOR_2);
-                win_dir = malloc(strlen(token) + 1);
-                if (win_dir != NULL) strcpy(win_dir, token);
-                encounter_separator = true;
-            }
-            else
-            {
-                lose_dir = malloc(strlen(token) + 1);
-                if (lose_dir != NULL) strcpy(lose_dir, token);
-            }
-            token = strtok(NULL, CHAR_SEPARATOR_2);
-		}
-
-        while (1)
+        for (i = 0; i < real_options_length; i++)
         {
-            /* DEBUG TO DELETE */
-            if (show_debug)
-            {
-                agilitywin = create_newwin(6, x_max - 12, y_max - 8, 5);
-                box(agilitywin, 0 , 0);
-            }
+            option = get_json_object_string("text", json_object_to_json_string(array_list_get_idx(choices, i)));
 
-            if (succeed_agility)
-            {
-                if (show_debug) mvwprintw(agilitywin, 1, 2, "you win, jumping into key :%s", win_dir);
-                if (next != NULL) strcpy(next, win_dir);
-            }
+            if (i == highlight)
+                wattron(win, A_REVERSE);
+
+            json_object_object_get_ex(array_list_get_idx(choices, i), "needed_skill", &obj_needed_skill);
+            if (obj_needed_skill == NULL)
+                mvwprintw(win, i + 1, 2, "%s", option);
             else
             {
-                if (show_debug)
-                    mvwprintw(agilitywin, 1, 2, "you lost, jumping into key :%s", lose_dir);
-                if (next != NULL) strcpy(next, lose_dir);
-            }
+                json_object_object_get_ex(array_list_get_idx(choices, i), "needed_value", &obj_needed_value);
+                type = (char *)json_object_get_string(obj_needed_skill);
 
-            /* DEBUG TO DELETE */
-            if (show_debug)
-            {
-                wrefresh(agilitywin);
-                if (wgetch(agilitywin) == 10) break;
-            } else break;                             
+                if (json_object_get_int(obj_needed_value) > 0)
+                {
+                    if (get_json_data_int(type, usr_buffer) >= json_object_get_int(obj_needed_value))
+                    {
+                        wattron(win, COLOR_PAIR(1));
+                        mvwprintw(win, i + 1, 2, "%s", option);
+                        wattroff(win, COLOR_PAIR(1));
+                    }
+                }
+                else if (json_object_get_int(obj_needed_value) < 0)
+                {
+                    if (get_json_data_int(type, usr_buffer) <= ((int)json_object_get_int(obj_needed_value) * -1))
+                    {
+                        wattron(win, COLOR_PAIR(1));
+                        mvwprintw(win, i + 1, 2, "%s", option);
+                        wattroff(win, COLOR_PAIR(1));
+                    }
+                }
+            }
+            wattroff(win, A_REVERSE);
+
+            free(option);
+            option = NULL;
         }
 
-        free(win_dir);
-        free(lose_dir);
-        destroy_win(agilitywin);
+        choice = wgetch(win);
+
+        switch (choice)
+        {
+        case KEY_DOWN:
+            highlight == real_options_length - 1 ? highlight = 0 : highlight++;
+            break;
+        case KEY_UP:
+            highlight == 0 ? highlight = real_options_length - 1 : highlight--;
+            break;
+        default:
+            break;
+        }
+        if (choice == 10)
+            break;
+        refresh();
     }
+
+    free(option);
+    option = NULL;
+
+    answer = get_json_object_string("next_key", json_object_to_json_string(array_list_get_idx(choices, highlight)));
+    if (answer == NULL)
+        return NULL;
+
+    /* ACTIVATE ARROW KEYS */
+    keypad(win, false);
+
+    clear_win(win);
+
+    return answer;
 }

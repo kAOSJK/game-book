@@ -1,36 +1,79 @@
 #ifndef hi
 #define hi
 
+#include <json.h>
+#ifdef __linux__
+#include <ncurses.h>
+#elif _WIN32
 #include <ncurses/ncurses.h>
+#else
+
+#endif
+
+typedef struct
+{
+    char *key;
+    char *text;
+    array_list *choices;
+    json_object *test;
+    char *next_key;
+} part;
+
+typedef struct
+{
+    char *title;
+    part **parts;
+    int length;
+} chapter;
 
 /* json-lib.c */
-void    get_json_array_data(char** data, char* key, char* buffer);
-char*   get_json_data(char* key, char* buffer);
-size_t  get_json_options_length(char* key, char* buffer);
-bool    get_json_data_boolean(char* key, char* buffer);
-int     get_json_data_int(char* key, char* buffer);
-void    get_json_object_data(char* object_key, char* buffer);
-int     change_json_object_data(char* object_key, unsigned int index_key, char* value_to_assign, char* buffer);
+void get_json_array_data(char **data, char *key, char *buffer);
+size_t get_json_options_length(char *key, char *buffer);
+bool get_json_data_boolean(char *key, char *buffer);
+int get_json_data_int(char *key, char *buffer);
+/* object oriented lib */
+char *get_array_idx_key(char *buffer);
+int get_json_object_int(const char *key, const char *buffer);
+void set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer);
+char *get_json_object_string(const char *key, const char *buffer);
+void set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer);
+char *get_json_object_index_data(const char *object_key, unsigned int index_key, const char *buffer);
+void create_player_json_data(void);
 
 /* window-lib.c */
-WINDOW* create_newwin(int height, int width, int starty, int startx);
-void    destroy_win(WINDOW *local_win);
-void    clear_win(WINDOW *local_win);
+WINDOW *create_newwin(int height, int width, int starty, int startx);
+WINDOW *create_windows_vars(int y_max, int x_max, int position, const char *title, int value);
+void destroy_win(WINDOW *local_win);
+void clear_win(WINDOW *local_win);
 
 /* menu-lib.c */
-int     display_menu(int y_max, int x_max, char* buffer);
+int display_menu(int y_max, int x_max, char *buffer);
 
 /* agility-lib.c */
-bool    agility(int y_max, int x_max, int size);
+bool agility(int y_max, int x_max, int size);
 
 /* story-lib.c */
-void    begin_story(int y_max, int x_max, int speed_0, int speed_1, int story_length, char** parts, bool show_debug, char* buffer, char* name);
-void    write_story(char** story, WINDOW* win, int y_max, int x_max, int speed_0, int speed_1, char* next, bool show_debug, char* name);
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
+void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name);
+char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer);
 
 /* game-lib.c */
-char** sentence_separator(char* str, char* separator);
-char* replaceWord(const char* s, const char* oldW, const char* newW);
-char* int_to_word(int n);
-void update_json(char* temp, FILE* out);
+char **sentence_separator(char *str, char *separator);
+char *int_to_word(int n);
+void update_json(char *temp, FILE *out);
+char *open_file(FILE *fp, char *path, char *access_mode);
+void reload_windows_vars(int y_max, int x_max, int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
+void add_agility_value(const int add_value, FILE *fp, char *buffer);
+void add_mental_value(const int add_value, FILE *fp, char *buffer);
+void add_trust_value(const int add_value, FILE *fp, char *buffer);
+/* data story oriented lib */
+json_object *get_part_text_data_by_key(array_list *story, char *key, int chapter_index, const char *buffer);
+chapter **get_story_data(array_list *story, char *buffer);
+chapter *get_chapter_data(array_list *story, int chapter_index, char *buffer);
+part *get_part_data(array_list *story, char *key, int chapter_index, const char *buffer);
+char *get_first_key(unsigned int chapter_index, char *buffer);
+void free_part(part *dpart);
+void free_chapter_data(chapter *data);
+void free_story_data(chapter **story);
 
 #endif
