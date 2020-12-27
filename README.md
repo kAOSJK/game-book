@@ -24,7 +24,8 @@
 ## Install
 
 ```sh
-make
+make lib
+make game
 ```
 
 ## Usage
