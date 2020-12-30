@@ -7,22 +7,34 @@
 #include "lib.h"
 
 #define CHAR_SEPARATOR "$"
-#define CHAR_SEPARATOR_2 "/"
 
 void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
 {
+    FILE *fp;
     WINDOW *win;
     part *current_part;
     char **text = NULL;
     char **temp = NULL;
     char *key = NULL;
+    /* WINDOWs */
+    WINDOW *agilitywin;
+    WINDOW *mentalwin;
+    WINDOW *trustwin;
 
-    /* TEST VARs*/
+    /* TEST VARs */
     int test_difficulty;
     bool result;
 
+    /* UPGRADE VARs */
+    char *skill_type = NULL;
+    int add_value;
+
     /* CREATE A WINDOW FOR OUR INPUT */
-    win = create_newwin(6, x_max - 12, y_max - 8, 5);
+    win = create_newwin(8, x_max - 4, y_max - 9, 2);
+
+    /* RELOAD WINDOWS */
+    /* TODO: implement this */
+    reload_windows_vars(y_max, x_max, get_json_data_int("agility", usr_buffer), get_json_data_int("mental", usr_buffer), get_json_data_int("trust", usr_buffer), agilitywin, mentalwin, trustwin);
 
     /* GET FIRST CHAPTER KEY */
     key = get_first_key(chapter_index, buffer);
@@ -42,6 +54,37 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
         /* FREE KEY */
         free(key);
         key = NULL;
+
+        if (current_part->upgrade != NULL)
+        {
+            add_value = json_object_get_int(json_object_object_get(current_part->upgrade, "add_value"));
+
+            skill_type = strdup(json_object_get_string(json_object_object_get(current_part->upgrade, "skill_type")));
+
+            if (strcmp(skill_type, "agility") == 0)
+            {
+                add_agility_value(add_value, fp, usr_buffer);
+                /*
+                printw("\nI normally added %d to %s in the user.json file\n", add_value, skill_type);*/
+            }
+            else if (strcmp(skill_type, "mental") == 0)
+            {
+                add_mental_value(add_value, fp, usr_buffer);
+                /*
+                printw("\nI normally added %d to %s in the user.json file\n", add_value, skill_type);*/
+            }
+            else if (strcmp(skill_type, "trust") == 0)
+            {
+                add_trust_value(add_value, fp, usr_buffer);
+                /*
+                printw("\nI normally added %d to %s in the user.json file\n", add_value, skill_type);*/
+            }
+
+            refresh();
+
+            free(skill_type);
+            skill_type = NULL;
+        }
 
         if (current_part->next_key != NULL && *current_part->next_key != 0)
         {
@@ -100,13 +143,16 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
     }
 
     destroy_win(win);
+    /*
+    destroy_win(agilitywin);
+    destroy_win(mentalwin);
+    destroy_win(trustwin);*/
 }
 
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name)
 {
     size_t i, j;
     bool skip = false;
-    bool print_stop = false;
     int wait_time = speed_0;
     /* NAME VARs */
     unsigned int k = 0;
@@ -134,11 +180,7 @@ void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, in
 
                 fflush(stdout);
                 usleep(wait_time);
-                if (story[j][i] == '*')
-                {
-                    print_stop = true;
-                }
-                else if (story[j][i] == '&')
+                if (story[j][i] == '&')
                 {
                     while (name[k])
                     {
@@ -151,9 +193,9 @@ void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, in
                     wrote_name++;
                 }
 
-                if (!print_stop && !wrote_name)
+                if (!wrote_name)
                     mvwprintw(win, 1 + j, 2 + i, "%c", story[j][i]);
-                else if (!print_stop)
+                else
                 {
                     if (story[j][i] != '&')
                         mvwprintw(win, 1 + j, 2 + i + (n * wrote_name), "%c", story[j][i]);

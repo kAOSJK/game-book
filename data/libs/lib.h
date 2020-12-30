@@ -2,18 +2,20 @@
 #define hi
 
 #include <json.h>
+
 #ifdef __linux__
 #include <ncurses.h>
 #elif _WIN32
 #include <ncurses/ncurses.h>
-#else
-
 #endif
+
+#define IS_LOWER_CASE(c) ((c >= 'a' && c <= 'z'))
 
 typedef struct
 {
     char *key;
     char *text;
+    json_object *upgrade;
     array_list *choices;
     json_object *test;
     char *next_key;
@@ -34,7 +36,7 @@ int get_json_data_int(char *key, char *buffer);
 /* object oriented lib */
 char *get_array_idx_key(char *buffer);
 int get_json_object_int(const char *key, const char *buffer);
-void set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer);
+int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer);
 char *get_json_object_string(const char *key, const char *buffer);
 void set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer);
 char *get_json_object_index_data(const char *object_key, unsigned int index_key, const char *buffer);
@@ -47,7 +49,8 @@ void destroy_win(WINDOW *local_win);
 void clear_win(WINDOW *local_win);
 
 /* menu-lib.c */
-int display_menu(int y_max, int x_max, char *buffer);
+int display_menu(int y_max, int x_max, char *language, char *buffer);
+char *display_languages(int y_max, int x_max, char *language, char *buffer);
 
 /* agility-lib.c */
 bool agility(int y_max, int x_max, int size);
@@ -63,9 +66,9 @@ char *int_to_word(int n);
 void update_json(char *temp, FILE *out);
 char *open_file(FILE *fp, char *path, char *access_mode);
 void reload_windows_vars(int y_max, int x_max, int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
-void add_agility_value(const int add_value, FILE *fp, char *buffer);
-void add_mental_value(const int add_value, FILE *fp, char *buffer);
-void add_trust_value(const int add_value, FILE *fp, char *buffer);
+int add_agility_value(const int add_value, FILE *fp, char *buffer);
+int add_mental_value(const int add_value, FILE *fp, char *buffer);
+int add_trust_value(const int add_value, FILE *fp, char *buffer);
 /* data story oriented lib */
 json_object *get_part_text_data_by_key(array_list *story, char *key, int chapter_index, const char *buffer);
 chapter **get_story_data(array_list *story, char *buffer);
@@ -75,5 +78,6 @@ char *get_first_key(unsigned int chapter_index, char *buffer);
 void free_part(part *dpart);
 void free_chapter_data(chapter *data);
 void free_story_data(chapter **story);
+void print_credits();
 
 #endif

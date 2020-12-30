@@ -10,8 +10,7 @@
 #define DEFAULT_TEXT_SPEED_1 (10000)
 #define DEFAULT_MAX_NAME_SIZE (10)
 
-#define IS_LOWER_CASE(c) ((c >= 'a' && c <= 'z'))
-
+void play_menu(int y_max, int x_max, char *language);
 void play_game(int, int, char *, char *, char *);
 void play_agility_game(int, int);
 void display_title(int, int, array_list *, unsigned int);
@@ -21,33 +20,20 @@ void update_json(char *temp, FILE *out);
 
 int main()
 {
-    int menu_answer;
+    char *language = NULL;
+    char *buffer = NULL;
     int y_max, x_max;
-    /* JSON VARs */
     FILE *fp;
-    /*FILE *out;*/
-    FILE *user;
-    char *buffer;
-    char *usr_buffer;
-
-    /* NAME VARs */
-    char *name = NULL;
-    int max_name_size;
-    /* WINDOWs */
-    WINDOW *agilitywin;
-    WINDOW *mentalwin;
-    WINDOW *trustwin;
-
-    /* TODO: choose language
-    Polyglot : The game supports at least one language other than english */
 
     /* TODO: responsive
     Responsive : The game adapts itself to the size of the terminal */
 
-    /* READ AND GET JSON DATA */
-    user = fopen("data/user.json", "r");
-
     buffer = open_file(fp, "data/data.json", "r");
+
+    if (buffer == NULL)
+        return 0;
+
+    language = get_json_object_string("default_language", buffer);
 
     /* START NCURSES */
     initscr();
@@ -56,8 +42,53 @@ int main()
     cbreak();
     curs_set(0);
 
+    /*
+    print_credits();
+    getchar();*/
+
+    /*
+    printw("%s\n", language);
+    refresh();
+    getchar();*/
+
+    play_menu(y_max, x_max, language);
+
+    endwin();
+
+    free(buffer);
+    buffer = NULL;
+
+    return 0;
+}
+
+void play_menu(int y_max, int x_max, char *language)
+{
+    int menu_answer;
+    char *languages_answer = NULL;
+    /* JSON VARs */
+    char *usr_buffer = NULL;
+    char *buffer = NULL;
+    FILE *user;
+    FILE *fp;
+    /* NAME VARs */
+    char *name = NULL;
+    int max_name_size;
+
+    /* READ AND GET JSON DATA */
+    user = fopen("data/user.json", "r");
+
+    buffer = open_file(fp, "data/data.json", "r");
+
+    /*
+    printw("current language is: %s", language);
+    refresh();
+    getchar();*/
+
     /* DISPLAY THE GAME MENU */
-    menu_answer = display_menu(y_max, x_max, buffer);
+    menu_answer = display_menu(y_max, x_max, language, buffer);
+
+    /* TODO: choose language
+    Polyglot : The game supports at least one language other than english */
 
     /* MENU PLAYER CHOICE */
     if (menu_answer == 0)
@@ -82,30 +113,41 @@ int main()
             set_json_object_int("trust", 0, user, usr_buffer);
         }
 
-        /*
-        reload_windows_vars(y_max, x_max, get_json_data_int("agility", usr_buffer), get_json_data_int("mental", usr_buffer), get_json_data_int("trust", usr_buffer), agilitywin, mentalwin, trustwin);
-        */
-
-        /*
-        add_mental_value(3, user, usr_buffer);
-        add_agility_value(4, user, usr_buffer);
-        add_trust_value(10, user, usr_buffer);
-        */
-
         play_game(y_max, x_max, buffer, usr_buffer, name);
     }
     else if (menu_answer == 1)
     {
         play_agility_game(y_max, x_max);
     }
+    else if (menu_answer == 2)
+    {
+        /* peut provoquer des leaks bg */
+        languages_answer = display_languages(y_max, x_max, language, buffer);
 
+        if (languages_answer != NULL)
+        {
+            /*
+            printw("new language incoming is: %s", languages_answer);
+            refresh();
+            getchar();*/
+            play_menu(y_max, x_max, languages_answer);
+        }
+    }
+
+    fclose(user);
+
+    /* FREES */
     free(buffer);
+    buffer = NULL;
+
     free(usr_buffer);
+    usr_buffer = NULL;
+
     free(name);
+    name = NULL;
 
-    endwin();
-
-    return 0;
+    free(language);
+    language = NULL;
 }
 
 void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
@@ -133,10 +175,16 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
 
     /* GET GAME DATA */
     parsed_json = json_tokener_parse(buffer);
-    parsed_story = json_object_get_array(json_object_object_get(parsed_json, "stori"));
+    parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
 
     /* STORE DATA */
     story = get_story_data(parsed_story, buffer);
+
+    /*
+    add_mental_value(3, user, usr_buffer);
+    add_agility_value(4, user, usr_buffer);
+    add_trust_value(10, user, usr_buffer);
+    */
 
     for (i = 0; story[i]; i++)
     {
@@ -171,8 +219,10 @@ void display_title(int y_max, int x_max, array_list *story, unsigned int chapter
             break;
     }
 
-    destroy_win(win);
     free(title);
+    title = NULL;
+
+    destroy_win(win);
 }
 
 void ask_new_name(int y_max, int x_max, char *name, size_t max_size)
@@ -186,7 +236,7 @@ void ask_new_name(int y_max, int x_max, char *name, size_t max_size)
     int c;
 
     curs_set(1);
-    win = create_newwin(6, x_max - 12, y_max - 8, 5);
+    win = create_newwin(7, x_max - 6, y_max - 8, 3);
     box(win, 0, 0);
 
     for (i = 0; ask[i]; i++)
@@ -236,7 +286,7 @@ void play_agility_game(int y_max, int x_max)
     unsigned int i = 1;
     unsigned int score = 0;
 
-    win = create_newwin(6, x_max - 12, y_max - 8, 5);
+    win = create_newwin(7, x_max - 6, y_max - 8, 3);
     while (i <= 10)
     {
         if (agility(y_max, x_max, 6))

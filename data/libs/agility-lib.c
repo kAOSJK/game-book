@@ -4,8 +4,10 @@
 #include <time.h>
 #include "lib.h"
 
+#define LOADING_WAIT (100000)
+
 int get_key(char input);
-void refresh_qte(WINDOW *win, int size, int validated, char *qte);
+void refresh_qte(WINDOW *win, int size, int validated, char *qte, bool failed);
 char *randomize_qte(int size);
 
 bool agility(int y_max, int x_max, int size)
@@ -37,8 +39,9 @@ bool agility(int y_max, int x_max, int size)
 
     start_color();
     init_pair(1, COLOR_GREEN, COLOR_BLACK);
+    init_pair(2, COLOR_RED, COLOR_BLACK);
 
-    refresh_qte(menuwin, size, validated, qte);
+    refresh_qte(menuwin, size, validated, qte, false);
     while (1)
     {
         if (validated <= size)
@@ -50,10 +53,19 @@ bool agility(int y_max, int x_max, int size)
             {
                 highlight++;
                 validated++;
-                refresh_qte(menuwin, size, validated, qte);
+                refresh_qte(menuwin, size, validated, qte, false);
             }
             else if (input != -1 && input != 10)
+            {
+                input = -1;
+                refresh_qte(menuwin, size, validated, qte, true);
+
+                wrefresh(menuwin);
+                fflush(stdout);
+                usleep(LOADING_WAIT * 10);
+
                 break; /* player failed */
+            }
 
             if (j < 34) /* loading bar */
             {
@@ -61,7 +73,7 @@ bool agility(int y_max, int x_max, int size)
                 mvwprintw(loadwin, 1, 1 + j, "%c", str[j]);
                 wrefresh(loadwin);
                 fflush(stdout);
-                usleep(100000);
+                usleep(LOADING_WAIT);
                 j++;
             }
             else
@@ -87,7 +99,7 @@ bool agility(int y_max, int x_max, int size)
         return false;
 }
 
-void refresh_qte(WINDOW *win, int size, int validated, char *qte)
+void refresh_qte(WINDOW *win, int size, int validated, char *qte, bool failed)
 {
     int i;
 
@@ -95,6 +107,13 @@ void refresh_qte(WINDOW *win, int size, int validated, char *qte)
     {
         if (i < validated)
             wattron(win, COLOR_PAIR(1));
+
+        /* PLAYER'S FAILURE CASE */
+        if (failed)
+        {
+            if (i == validated)
+                wattron(win, COLOR_PAIR(2));
+        }
 
         mvwprintw(win, 1, (i * 2) + 2, "%c", qte[i]);
         wattroff(win, COLOR_PAIR(1));

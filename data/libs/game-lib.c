@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <time.h>
 #include "lib.h"
+
+#define CREDITS_WAIT_TIME (2500000)
 
 char **sentence_separator(char *str, char *separator)
 {
@@ -107,22 +111,34 @@ void reload_windows_vars(int y_max, int x_max, int agilityval, int mentalval, in
     trustwin = create_windows_vars(y_max, x_max, 2, "TRUST", trustval);
 }
 
-void add_agility_value(const int add_value, FILE *fp, char *buffer)
+int add_agility_value(const int add_value, FILE *fp, char *buffer)
 {
     int new_agility = get_json_data_int("agility", buffer) + add_value;
+    int res;
+
     set_json_object_int("agility", new_agility, fp, buffer);
+
+    return res;
 }
 
-void add_mental_value(const int add_value, FILE *fp, char *buffer)
+int add_mental_value(const int add_value, FILE *fp, char *buffer)
 {
     int new_mental = get_json_data_int("mental", buffer) + add_value;
-    set_json_object_int("mental", new_mental, fp, buffer);
+    int res;
+
+    res = set_json_object_int("mental", new_mental, fp, buffer);
+
+    return res;
 }
 
-void add_trust_value(const int add_value, FILE *fp, char *buffer)
+int add_trust_value(const int add_value, FILE *fp, char *buffer)
 {
     int new_trust = get_json_data_int("trust", buffer) + add_value;
-    set_json_object_int("trust", new_trust, fp, buffer);
+    int res;
+
+    res = set_json_object_int("trust", new_trust, fp, buffer);
+
+    return res;
 }
 
 /* data story oriented lib */
@@ -229,12 +245,14 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
     json_object *obj;
     json_object *obj_key;
     json_object *obj_text;
+    json_object *obj_upgrade;
     array_list *obj_choices;
     json_object *obj_test;
     json_object *obj_next_key;
 
     npart->key = NULL;
     npart->text = NULL;
+    npart->upgrade = NULL;
     npart->choices = NULL;
     npart->test = NULL;
     npart->next_key = NULL;
@@ -255,6 +273,7 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
 
     json_object_object_get_ex(obj, "key", &obj_key);
     json_object_object_get_ex(obj, "text", &obj_text);
+    json_object_object_get_ex(obj, "upgrade", &obj_upgrade);
     obj_choices = json_object_get_array(json_object_object_get(obj, "choices"));
     json_object_object_get_ex(obj, "test", &obj_test);
     json_object_object_get_ex(obj, "next_key", &obj_next_key);
@@ -273,6 +292,12 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
         npart->text = strdup(json_object_get_string(obj_text));
         if (npart->text == NULL)
             fprintf(stderr, "error: allocation of the pointer failed\n");
+    }
+
+    /* PUT THE POTENTIAL UPGRADE TO THE NEW PART */
+    if (obj_upgrade != NULL)
+    {
+        npart->upgrade = obj_upgrade;
     }
 
     /* ALLOCATE AND PUT CHOICES TO THE NEW PART IF THERE IS ONE */
@@ -368,7 +393,50 @@ void free_story_data(chapter **story)
     story = NULL;
 }
 
-void print_credits()
+void print_credits(int y_max, int x_max)
 {
     WINDOW *win;
+    FILE *file;
+    int height = 11;
+    int weight = 11;
+    int c; /* represent the current readed char in the fie */
+
+    create_newwin(height, weight, y_max / 2 - (height / 2), x_max / 2 - (weight / 2));
+
+    file = fopen("data/lion_0", "r");
+    if (file != NULL)
+    {
+        while ((c = getc(file)) != EOF)
+            printw("%c", c);
+        fclose(file);
+        refresh();
+    }
+
+    refresh();
+    fflush(stdout);
+    usleep(CREDITS_WAIT_TIME);
+    clear();
+
+    file = fopen("data/lion_1", "r");
+    if (file != NULL)
+    {
+        while ((c = getc(file)) != EOF)
+            printw("%c", c);
+        fclose(file);
+        refresh();
+    }
+
+    refresh();
+    fflush(stdout);
+    usleep(CREDITS_WAIT_TIME);
+    clear();
+
+    file = fopen("data/lion_2", "r");
+    if (file != NULL)
+    {
+        while ((c = getc(file)) != EOF)
+            printw("%c", c);
+        fclose(file);
+        refresh();
+    }
 }

@@ -1,38 +1,44 @@
 {
-  "menu": ["Play", "Agility", "Quit"],
+  "menu": ["Play", "Agility", "Language", "Quit"],
+  "menu_fr": ["Jouer", "Agilite", "Langue", "Quitter"],
+  "menu_jv": ["kanggo muter", "prigel", "basa", "kanggo ninggalake"],
   "max_name_size": 10,
   "text_speed_0": 1,
   "text_speed_1": 10,
   "show_debugger": false,
+  "default_language": "english",
+  "languages": ["english", "french", "javanese"],
+  "languages_fr": ["anglais", "francais", "javanais"],
+  "languages_jv": ["Basa inggris", "Prancis", "Wong jawa"],
   "entry_keys": ["flash1", "quit"],
-  "stori": [
+  "story": [
     {
       "introduction": [
         {
           "key": "flash1",
-          "text": "Hello what you want to do ?",
+          "text": "Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ? Hello what you want to do ? Hello what you want to do he?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ?",
+          "upgrade": { "skill_type": "agility", "add_value": 1 },
+          "next_key": "flash2"
+        },
+        {
+          "key": "flash2",
+          "text": "Hello mate ?",
+          "upgrade": { "skill_type": "mental", "add_value": -2 },
           "choices": [
-            { "text": "courrir", "next_key": "flash2" },
+            { "text": "courrir", "next_key": "flash3" },
             { "text": "quittez", "next_key": "flash3" },
             {
               "text": "dance",
               "needed_skill": "agility",
-              "needed_value": -7,
+              "needed_value": 7,
               "next_key": "dance"
             }
           ]
         },
         {
-          "key": "flash2",
-          "text": "Hello mate ?",
-          "choices": [
-            { "text": "bye u suck", "next_key": "flash3" },
-            { "text": "quit", "next_key": "quit" }
-          ]
-        },
-        {
           "key": "flash3",
           "text": "Bye mate",
+          "upgrade": { "skill_type": "trust", "add_value": 7 },
           "test": {
             "type": "agility",
             "difficulty": 7,

@@ -148,12 +148,41 @@ int get_json_object_int(const char *key, const char *buffer)
 	return (int)json_object_get_int(json_object_object_get(parsed_json, key));
 }
 
-void set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer)
+int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer)
 {
 	struct json_object *parsed_json = json_tokener_parse(buffer);
-	json_object_set_int(json_object_object_get(parsed_json, key), new_value);
-	json_object_to_file(USER_DATA_PATH, parsed_json);	/* save json file */
-	strcpy(buffer, open_file(fp, USER_DATA_PATH, "r")); /* reload buffer */
+	char *temp = NULL;
+	int res;
+
+	if (!key || *key == 0)
+		return 0;
+
+	if (!buffer || *buffer == 0)
+		return 0;
+
+	/*
+	printw("\nkey to add %s, value %d\n", key, new_value);
+	refresh();
+	getchar();*/
+
+	res = json_object_set_int(json_object_object_get(parsed_json, key), new_value);
+
+	if (res == 1)
+		json_object_to_file(USER_DATA_PATH, parsed_json); /* save json file */
+
+	temp = open_file(fp, USER_DATA_PATH, "r");
+
+	if (temp == NULL)
+		return 0;
+
+	strcpy(buffer, temp); /* reload buffer */
+
+	free(temp);
+	temp = NULL;
+
+	json_object_put(parsed_json);
+
+	return 1;
 }
 
 char *get_json_object_string(const char *key, const char *buffer)
