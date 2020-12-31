@@ -11,8 +11,8 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
     char *menu_key = NULL;
     /* SCREEN VARs */
     WINDOW *menuwin;
-    int height = 11;
-    int weight = 24;
+    int height = 13;
+    int width = 24;
     /* DATA VARs */
     char **choices;
     int options_length;
@@ -30,7 +30,7 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
     else
     {
         fprintf(stderr, "error: unknown language\n");
-        return 3;
+        return 4;
     }
 
     /* CREATE MENU WINDOW */
@@ -39,7 +39,7 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
     printw("\ny_max: %d\n x_max: %d\n", y_max, x_max);
     refresh();
     getchar();*/
-    menuwin = create_newwin(height, weight, y_max / 2 - (height / 2), x_max / 2 - (weight / 2));
+    menuwin = create_newwin(height, width, y_max / 2 - (height / 2), x_max / 2 - (width / 2));
 
     /* ACTIVATE ARROW KEYS */
     keypad(menuwin, true);
@@ -56,7 +56,7 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
         {
             if (i == highlight)
                 wattron(menuwin, A_REVERSE);
-            mvwprintw(menuwin, (i * 2) + 1 + 1, (weight / 2) - (strlen(choices[i]) / 2), "%s", choices[i]);
+            mvwprintw(menuwin, (i * 2) + 1 + 1, (width / 2) - (strlen(choices[i]) / 2), "%s", choices[i]);
             wattroff(menuwin, A_REVERSE);
         }
 
@@ -94,8 +94,8 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     char *menu_key = NULL;
     /* SCREEN VARs */
     WINDOW *menuwin;
-    int height = 11;
-    int weight = 24;
+    int height = 13;
+    int width = 24;
     /* DATA VARs */
     char **choices = NULL;
     char **real_choices = NULL;
@@ -126,7 +126,7 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
 
     /* CREATE MENU WINDOW */
     getmaxyx(stdscr, y_max, x_max);
-    menuwin = create_newwin(height, weight, y_max / 2 - (height / 2), x_max / 2 - (weight / 2));
+    menuwin = create_newwin(height, width, y_max / 2 - (height / 2), x_max / 2 - (width / 2));
 
     /* ACTIVATE ARROW KEYS */
     keypad(menuwin, true);
@@ -145,7 +145,7 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
         {
             if (i == highlight)
                 wattron(menuwin, A_REVERSE);
-            mvwprintw(menuwin, (i * 2) + 1 + 1, (weight / 2) - (strlen(choices[i]) / 2), "%s", choices[i]);
+            mvwprintw(menuwin, (i * 2) + 1 + 1, (width / 2) - (strlen(choices[i]) / 2), "%s", choices[i]);
             wattroff(menuwin, A_REVERSE);
         }
 
@@ -183,6 +183,10 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     free(real_choices);
 
     free(menu_key);
+    menu_key = NULL;
+
+    free(language);
+    language = NULL;
 
     destroy_win(menuwin);
 

@@ -28,6 +28,9 @@ typedef struct
     int length;
 } chapter;
 
+/* game.c */
+void play_menu(int y_max, int x_max, char *language);
+
 /* json-lib.c */
 void get_json_array_data(char **data, char *key, char *buffer);
 size_t get_json_options_length(char *key, char *buffer);
@@ -78,6 +81,7 @@ char *get_first_key(unsigned int chapter_index, char *buffer);
 void free_part(part *dpart);
 void free_chapter_data(chapter *data);
 void free_story_data(chapter **story);
-void print_credits();
+void print_credits(int y_max, int x_max, char *language);
+int reload_credits_win(WINDOW *win, int y_pos, int x_pos);
 
 #endif

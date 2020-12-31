@@ -86,7 +86,10 @@ bool agility(int y_max, int x_max, int size)
 
     /* Free */
     free(str);
+    str = NULL;
+
     free(qte);
+    qte = NULL;
 
     /* Delete windows */
     destroy_win(menuwin);

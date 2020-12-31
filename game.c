@@ -43,10 +43,6 @@ int main()
     curs_set(0);
 
     /*
-    print_credits();
-    getchar();*/
-
-    /*
     printw("%s\n", language);
     refresh();
     getchar();*/
@@ -133,6 +129,10 @@ void play_menu(int y_max, int x_max, char *language)
             play_menu(y_max, x_max, languages_answer);
         }
     }
+    else if (menu_answer == 3)
+    {
+        print_credits(y_max, x_max, language);
+    }
 
     fclose(user);
 
@@ -146,8 +146,8 @@ void play_menu(int y_max, int x_max, char *language)
     free(name);
     name = NULL;
 
-    free(language);
-    language = NULL;
+    free(languages_answer);
+    languages_answer = NULL;
 }
 
 void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)

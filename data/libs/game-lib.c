@@ -5,7 +5,9 @@
 #include <time.h>
 #include "lib.h"
 
-#define CREDITS_WAIT_TIME (2500000)
+#define CREDITS_WAIT_TIME (1000000) /* real is 2500000 */
+#define DRAW_HEIGHT (8)
+#define DRAW_WIDTH (48)
 
 char **sentence_separator(char *str, char *separator)
 {
@@ -69,8 +71,10 @@ void update_json(char *buffer, FILE *out)
 {
     out = fopen("data/player.json", "w");
     fputs(buffer, out);
+
     free(buffer);
     buffer = NULL;
+
     fclose(out);
 }
 
@@ -169,6 +173,7 @@ json_object *get_part_text_data_by_key(array_list *story, char *key, int chapter
     }
 
     free(chapter_name);
+    chapter_name = NULL;
 
     return obj;
 }
@@ -235,6 +240,7 @@ chapter *get_chapter_data(array_list *story, int chapter_index, char *buffer)
     /*
     free(next_key);*/
     free(chapter_name);
+    chapter_name = NULL;
 
     return nchapter;
 }
@@ -267,6 +273,7 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
     if (obj == NULL)
     {
         free(npart);
+        npart = NULL;
         fprintf(stderr, "error: can't find key\n");
         return NULL;
     }
@@ -393,50 +400,145 @@ void free_story_data(chapter **story)
     story = NULL;
 }
 
-void print_credits(int y_max, int x_max)
+void print_credits(int y_max, int x_max, char *language)
 {
+    WINDOW *drawin;
     WINDOW *win;
-    FILE *file;
-    int height = 11;
-    int weight = 11;
-    int c; /* represent the current readed char in the fie */
+    FILE *fp;
+    /* MOVING WINDOW VARs */
+    int move_res;
+    bool need_switch = false;
 
-    create_newwin(height, weight, y_max / 2 - (height / 2), x_max / 2 - (weight / 2));
+    /* */
+    char *draw_0 = NULL;
+    char *draw_1 = NULL;
+    char *draw_2 = NULL;
+    /* */
+    int height = y_max / 3;
+    int width = x_max / 4;
+    int y_pos = 0; /* mid is: y_max / 2 - ((height) / 2) */
+    int x_pos = x_max / 3;
+    int c; /* represent the current readed char in the file */
 
-    file = fopen("data/lion_0", "r");
-    if (file != NULL)
+    /* CREDITS WINDOW CREATION */
+    win = create_newwin(height, width, y_pos, x_pos);
+    mvwprintw(win, 1, 3, "Director: Bertrand Eliot");
+    mvwprintw(win, 3, 3, "Designer: Bertrand Eliot");
+    mvwprintw(win, 4, 3, "Designer: Jourdan Lucas");
+    mvwprintw(win, 5, 3, "Designer: Mollier Mathis");
+    mvwprintw(win, 7, 3, "Developer: Covarel Edgar");
+    wrefresh(win);
+
+    /* DRAW WINDOW CREATION */
+    drawin = newwin(DRAW_HEIGHT + 1, DRAW_WIDTH, y_max / 2 - (DRAW_HEIGHT / 2), x_max - DRAW_WIDTH - 1);
+    wrefresh(drawin);
+
+    draw_0 = open_file(fp, "data/lion_0", "r");
+    draw_1 = open_file(fp, "data/lion_1", "r");
+    draw_2 = open_file(fp, "data/lion_2", "r");
+
+    /* PRINTING WINDOWS */
+    if (draw_0 && draw_1 && draw_2)
     {
-        while ((c = getc(file)) != EOF)
-            printw("%c", c);
-        fclose(file);
-        refresh();
+        while (1)
+        {
+            /* WRITE LION_0 */
+            wprintw(drawin, draw_0);
+            fflush(stdout);
+            usleep(CREDITS_WAIT_TIME / 2);
+            wrefresh(drawin);
+
+            /* MOVE CREDITS WIN */
+            !need_switch ? y_pos++ : y_pos--;
+            move_res = reload_credits_win(win, y_pos, x_pos);
+            if (move_res == -1)
+                need_switch = !need_switch;
+
+            nodelay(win, true);
+            if (wgetch(win) == 10)
+                break;
+
+            /* WAIT */
+            fflush(stdout);
+            usleep(CREDITS_WAIT_TIME);
+            wclear(drawin);
+
+            /* WRITE LION_1 */
+            wprintw(drawin, draw_1);
+            fflush(stdout);
+            usleep(CREDITS_WAIT_TIME / 2);
+            wrefresh(drawin);
+
+            /* MOVE CREDITS WIN */
+            !need_switch ? y_pos++ : y_pos--;
+            move_res = reload_credits_win(win, y_pos, x_pos);
+            if (move_res == -1)
+                need_switch = !need_switch;
+
+            nodelay(win, true);
+            if (wgetch(win) == 10)
+                break;
+
+            /* WAIT */
+            fflush(stdout);
+            usleep(CREDITS_WAIT_TIME);
+            wclear(drawin);
+
+            /* WRITE LION_2 */
+            wprintw(drawin, draw_2);
+            fflush(stdout);
+            usleep(CREDITS_WAIT_TIME / 2);
+            wrefresh(drawin);
+
+            /* MOVE CREDITS WIN */
+            !need_switch ? y_pos++ : y_pos--;
+            move_res = reload_credits_win(win, y_pos, x_pos);
+            if (move_res == -1)
+                need_switch = !need_switch;
+
+            nodelay(win, true);
+            if (wgetch(win) == 10)
+                break;
+
+            /* WAIT */
+            fflush(stdout);
+            usleep(CREDITS_WAIT_TIME);
+            wclear(drawin);
+        }
     }
 
-    refresh();
-    fflush(stdout);
-    usleep(CREDITS_WAIT_TIME);
-    clear();
+    free(draw_0);
+    draw_0 = NULL;
 
-    file = fopen("data/lion_1", "r");
-    if (file != NULL)
-    {
-        while ((c = getc(file)) != EOF)
-            printw("%c", c);
-        fclose(file);
-        refresh();
-    }
+    free(draw_1);
+    draw_1 = NULL;
 
-    refresh();
-    fflush(stdout);
-    usleep(CREDITS_WAIT_TIME);
-    clear();
+    free(draw_2);
+    draw_2 = NULL;
 
-    file = fopen("data/lion_2", "r");
-    if (file != NULL)
-    {
-        while ((c = getc(file)) != EOF)
-            printw("%c", c);
-        fclose(file);
-        refresh();
-    }
+    destroy_win(drawin);
+    destroy_win(win);
+
+    play_menu(y_max, x_max, language);
+}
+
+int reload_credits_win(WINDOW *win, int y_pos, int x_pos)
+{
+    int move_res;
+
+    /* MOVING THE WIN */
+    werase(win);
+    wrefresh(win);
+    move_res = mvwin(win, y_pos, x_pos);
+    box(win, 0, 0);
+
+    /* WRITING CREDITS CONTENT */
+    mvwprintw(win, 1, 3, "Director: Bertrand Eliot");
+    mvwprintw(win, 3, 3, "Designer: Bertrand Eliot");
+    mvwprintw(win, 4, 3, "Designer: Jourdan Lucas");
+    mvwprintw(win, 5, 3, "Designer: Mollier Mathis");
+    mvwprintw(win, 7, 3, "Developer: Covarel Edgar");
+    wrefresh(win);
+
+    return move_res;
 }

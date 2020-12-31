@@ -1,7 +1,7 @@
 {
-  "menu": ["Play", "Agility", "Language", "Quit"],
-  "menu_fr": ["Jouer", "Agilite", "Langue", "Quitter"],
-  "menu_jv": ["kanggo muter", "prigel", "basa", "kanggo ninggalake"],
+  "menu": ["Story", "Mini-game", "Language", "Credits", "Quit"],
+  "menu_fr": ["Histoire", "Mini-jeu", "Langue", "Credits", "Quitter"],
+  "menu_jv": ["Sejarah", "Game cilik", "Basa", "Kridit", "Kanggo ninggalake"],
   "max_name_size": 10,
   "text_speed_0": 1,
   "text_speed_1": 10,
@@ -17,13 +17,15 @@
         {
           "key": "flash1",
           "text": "Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ? Hello what you want to do ? Hello what you want to do he?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ?",
-          "upgrade": { "skill_type": "agility", "add_value": 1 },
+          /*
+          "upgrade": { "skill_type": "agility", "add_value": 1 },*/
           "next_key": "flash2"
         },
         {
           "key": "flash2",
           "text": "Hello mate ?",
-          "upgrade": { "skill_type": "mental", "add_value": -2 },
+          /* TODO: gérer le cas où le skill passe en négatif
+          "upgrade": { "skill_type": "mental", "add_value": -2 },*/
           "choices": [
             { "text": "courrir", "next_key": "flash3" },
             { "text": "quittez", "next_key": "flash3" },
@@ -38,7 +40,8 @@
         {
           "key": "flash3",
           "text": "Bye mate",
-          "upgrade": { "skill_type": "trust", "add_value": 7 },
+          /*
+          "upgrade": { "skill_type": "trust", "add_value": 7 },*/
           "test": {
             "type": "agility",
             "difficulty": 7,
