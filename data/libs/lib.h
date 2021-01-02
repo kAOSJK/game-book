@@ -41,13 +41,14 @@ char *get_array_idx_key(char *buffer);
 int get_json_object_int(const char *key, const char *buffer);
 int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer);
 char *get_json_object_string(const char *key, const char *buffer);
-void set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer);
+int set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer);
 char *get_json_object_index_data(const char *object_key, unsigned int index_key, const char *buffer);
 void create_player_json_data(void);
 
 /* window-lib.c */
 WINDOW *create_newwin(int height, int width, int starty, int startx);
-WINDOW *create_windows_vars(int y_max, int x_max, int position, const char *title, int value);
+WINDOW *create_window_var(int y_max, int x_max, int position);
+void refresh_window_var(WINDOW *local_win, int value, char *title);
 void destroy_win(WINDOW *local_win);
 void clear_win(WINDOW *local_win);
 
@@ -59,7 +60,7 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer);
 bool agility(int y_max, int x_max, int size);
 
 /* story-lib.c */
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name);
 char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer);
 
@@ -68,7 +69,8 @@ char **sentence_separator(char *str, char *separator);
 char *int_to_word(int n);
 void update_json(char *temp, FILE *out);
 char *open_file(FILE *fp, char *path, char *access_mode);
-void reload_windows_vars(int y_max, int x_max, int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
+void refresh_windows_vars(int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
+void destroy_windows_vars(WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
 int add_agility_value(const int add_value, FILE *fp, char *buffer);
 int add_mental_value(const int add_value, FILE *fp, char *buffer);
 int add_trust_value(const int add_value, FILE *fp, char *buffer);

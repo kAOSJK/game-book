@@ -79,10 +79,16 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
     }
 
     for (i = 0; i < options_length; i++)
+    {
         free(choices[i]);
+        choices[i] = NULL;
+    }
+
     free(choices);
+    choices = NULL;
 
     free(menu_key);
+    menu_key = NULL;
 
     destroy_win(menuwin);
 
@@ -175,18 +181,25 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     answer = strdup(real_choices[highlight]);
 
     for (i = 0; i < options_length; i++)
+    {
         free(choices[i]);
+        choices[i] = NULL;
+    }
+
     free(choices);
+    choices = NULL;
 
     for (i = 0; i < options_length; i++)
+    {
         free(real_choices[i]);
+        real_choices[i] = NULL;
+    }
+
     free(real_choices);
+    real_choices = NULL;
 
     free(menu_key);
     menu_key = NULL;
-
-    free(language);
-    language = NULL;
 
     destroy_win(menuwin);
 

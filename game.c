@@ -9,17 +9,19 @@
 #define DEFAULT_TEXT_SPEED_0 (50000)
 #define DEFAULT_TEXT_SPEED_1 (10000)
 #define DEFAULT_MAX_NAME_SIZE (10)
+#define DEFAULT_LANGUAGE ("english")
 
 void play_menu(int y_max, int x_max, char *language);
 void play_game(int, int, char *, char *, char *);
 void play_agility_game(int, int);
 void display_title(int, int, array_list *, unsigned int);
-void ask_new_name(int, int, char *, size_t);
+char *ask_new_name(int, int, size_t, char *);
 char *int_to_word(int);
 void update_json(char *temp, FILE *out);
 
 int main()
 {
+    /* BASICS VARs */
     char *language = NULL;
     char *buffer = NULL;
     int y_max, x_max;
@@ -28,12 +30,15 @@ int main()
     /* TODO: responsive
     Responsive : The game adapts itself to the size of the terminal */
 
-    buffer = open_file(fp, "data/data.json", "r");
+    buffer = open_file(fp, "data/data.json", "r"); /* get json data file */
 
-    if (buffer == NULL)
+    if (buffer == NULL) /* if the file does not exist, exit*/
         return 0;
 
     language = get_json_object_string("default_language", buffer);
+
+    if (language == NULL) /* if there is no default language, load default one */
+        language = strdup(DEFAULT_LANGUAGE);
 
     /* START NCURSES */
     initscr();
@@ -47,9 +52,9 @@ int main()
     refresh();
     getchar();*/
 
-    play_menu(y_max, x_max, language);
+    play_menu(y_max, x_max, language); /* play the menu */
 
-    endwin();
+    endwin(); /* end ncurses */
 
     free(buffer);
     buffer = NULL;
@@ -59,13 +64,14 @@ int main()
 
 void play_menu(int y_max, int x_max, char *language)
 {
-    int menu_answer;
+    /* BASIC VARs */
     char *languages_answer = NULL;
+    int menu_answer;
     /* JSON VARs */
     char *usr_buffer = NULL;
     char *buffer = NULL;
-    FILE *user;
-    FILE *fp;
+    FILE *user = NULL;
+    FILE *fp = NULL;
     /* NAME VARs */
     char *name = NULL;
     int max_name_size;
@@ -89,24 +95,30 @@ void play_menu(int y_max, int x_max, char *language)
     /* MENU PLAYER CHOICE */
     if (menu_answer == 0)
     {
-        if (user == NULL) /* means that the user play for the first time */
-            create_player_json_data();
+        if (user == NULL)              /* means that the user play for the first time */
+            create_player_json_data(); /* after this function call, the file user.json is created */
 
-        usr_buffer = open_file(user, "data/user.json", "r");
+        usr_buffer = open_file(user, "data/user.json", "r"); /* open user file */
 
-        name = get_json_object_string("name", usr_buffer);
-        if (!name || *name == 0)
+        name = get_json_object_string("name", usr_buffer); /* get the player name key */
+        if (!name || *name == 0)                           /* if it's empty, ask again a name */
         {
             max_name_size = get_json_data_int("max_name_size", buffer);
             if (!max_name_size)
                 max_name_size = DEFAULT_MAX_NAME_SIZE;
-            name = malloc(max_name_size);
 
-            ask_new_name(y_max, x_max, name, max_name_size);
+            free(name);
+            name = NULL;
+
+            name = ask_new_name(y_max, x_max, max_name_size, buffer);
+
             set_json_object_string("name", name, user, usr_buffer);
-            set_json_object_int("agility", 0, user, usr_buffer);
-            set_json_object_int("mental", 0, user, usr_buffer);
-            set_json_object_int("trust", 0, user, usr_buffer);
+
+            /* RELOAD USER BUFFER */
+            free(usr_buffer);
+            usr_buffer = NULL;
+
+            usr_buffer = open_file(user, "data/user.json", "r");
         }
 
         play_game(y_max, x_max, buffer, usr_buffer, name);
@@ -117,7 +129,6 @@ void play_menu(int y_max, int x_max, char *language)
     }
     else if (menu_answer == 2)
     {
-        /* peut provoquer des leaks bg */
         languages_answer = display_languages(y_max, x_max, language, buffer);
 
         if (languages_answer != NULL)
@@ -126,6 +137,7 @@ void play_menu(int y_max, int x_max, char *language)
             printw("new language incoming is: %s", languages_answer);
             refresh();
             getchar();*/
+
             play_menu(y_max, x_max, languages_answer);
         }
     }
@@ -134,7 +146,10 @@ void play_menu(int y_max, int x_max, char *language)
         print_credits(y_max, x_max, language);
     }
 
-    fclose(user);
+    if (user)
+    {
+        fclose(user);
+    }
 
     /* FREES */
     free(buffer);
@@ -146,18 +161,22 @@ void play_menu(int y_max, int x_max, char *language)
     free(name);
     name = NULL;
 
-    free(languages_answer);
-    languages_answer = NULL;
+    free(language);
+    language = NULL;
 }
 
 void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
 {
-    /* STORY VARs */
+    /* WINDOWS VARs */
+    WINDOW *titlewin;
+    WINDOW *agilitywin;
+    WINDOW *mentalwin;
+    WINDOW *trustwin;
+    /* STORY JSON VARs */
     struct json_object *parsed_json;
     struct array_list *parsed_story;
     chapter **story;
-    /* OTHER VARs */
-    WINDOW *titlewin;
+    /* STORY DATA VARs */
     char ***parts;
     char **chapters;
     unsigned int *chapter_length;
@@ -177,28 +196,25 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
     parsed_json = json_tokener_parse(buffer);
     parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
 
+    /* CREATE WINDOWS VARs */
+    agilitywin = create_window_var(y_max, x_max, 0);
+    mentalwin = create_window_var(y_max, x_max, 1);
+    trustwin = create_window_var(y_max, x_max, 2);
+
     /* STORE DATA */
     story = get_story_data(parsed_story, buffer);
-
-    /*
-    add_mental_value(3, user, usr_buffer);
-    add_agility_value(4, user, usr_buffer);
-    add_trust_value(10, user, usr_buffer);
-    */
 
     for (i = 0; story[i]; i++)
     {
         display_title(y_max, x_max, parsed_story, i);
 
-        begin_chapter(y_max, x_max, speed_0, speed_1, story[i], i, parsed_story, name, buffer, usr_buffer);
+        begin_chapter(y_max, x_max, speed_0, speed_1, story[i], i, parsed_story, name, buffer, usr_buffer, agilitywin, mentalwin, trustwin);
     }
 
     free_story_data(story);
-    int res = json_object_put(parsed_json);
+    int res = json_object_put(parsed_json); /* if res == 1 mean that it's a success */
 
-    /*
-    printf("\nFREE parsed_json result (1 if success):%d\n", res);
-    getchar();*/
+    destroy_windows_vars(agilitywin, mentalwin, trustwin);
 }
 
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index)
@@ -225,59 +241,90 @@ void display_title(int y_max, int x_max, array_list *story, unsigned int chapter
     destroy_win(win);
 }
 
-void ask_new_name(int y_max, int x_max, char *name, size_t max_size)
+char *ask_new_name(int y_max, int x_max, size_t max_size, char *buffer)
 {
     WINDOW *win;
-    char *tmp = NULL;
-    char ask[17] = "Enter your name:";
-    char n[25];
-    unsigned int i, j = 0;
+    char *name = NULL; /* final user name */
+    char *ask = NULL;  /* the sentence that ask the user name */
+    char *temp = NULL; /* temp char* that contain the player name */
+    unsigned int i = 0;
+    unsigned int j = 0;
     unsigned int k = 0;
-    int c;
+    int wait_time; /* text speed */
+    int c;         /* user char entry */
 
-    curs_set(1);
-    win = create_newwin(7, x_max - 6, y_max - 8, 3);
-    box(win, 0, 0);
+    /* WINDOW SETTINGS */
+    win = create_newwin(8, x_max - 4, y_max - 9, 2);
+    curs_set(1); /* put the cursor on */
+
+    /* ASK THE QUESTION */
+    wait_time = get_json_data_int("text_speed_0", buffer); /* default text speed */
+    if (!wait_time)
+        wait_time = DEFAULT_TEXT_SPEED_0;
+    ask = strdup("Enter your name:");
 
     for (i = 0; ask[i]; i++)
     {
         mvwprintw(win, 1, 2 + i, "%c", ask[i]);
         fflush(stdout);
-        usleep(50000);
+        usleep(wait_time);
         wrefresh(win);
     }
+
+    /* GET USER INPUT */
+    temp = malloc(sizeof(char) * ((int)max_size + 1));
 
     while (j < (unsigned int)max_size)
     {
         c = wgetch(win);
         if (c == 10)
             break;
-        else if (c == 8)
+        else if (c == 127)
         {
-            n[j] = 0;
+            temp[j] = 0;
             j--;
-            n[j] = 0;
+            temp[j] = 0;
             j--;
         }
         else
-            n[j] = c;
+            temp[j] = c;
 
         clear_win(win);
         mvwprintw(win, 1, 2, ask);
-        for (k = 0; n[k] != 0; k++)
-            mvwprintw(win, 1, 2 + i + k + 1, "%c", n[k]);
+        for (k = 0; k <= j; k++)
+            mvwprintw(win, 1, 2 + i + k + 1, "%c", temp[k]);
+
         wrefresh(win);
         j++;
     }
 
-    n[j] = 0;
+    temp[j] = 0;
 
-    tmp = realloc(name, strlen(n));
-    if (tmp != NULL)
-        strcpy(name, n);
+    name = strdup(temp);
 
-    curs_set(0);
+    curs_set(0); /* put the cursor off */
+
+    free(ask);
+    ask = NULL;
+
+    free(temp);
+    temp = NULL;
+
+    if (strlen(name) < 3)
+    {
+        mvwprintw(win, 3, 2, "You need atleast 3 characters in your name !");
+        wrefresh(win);
+        getchar();
+
+        free(name);
+        name = NULL;
+
+        name = ask_new_name(y_max, x_max, max_size, buffer);
+    }
+
     destroy_win(win);
+
+    return name;
 }
 
 void play_agility_game(int y_max, int x_max)

@@ -11,7 +11,7 @@ WINDOW *create_newwin(int height, int width, int starty, int startx)
     return local_win;
 }
 
-WINDOW *create_windows_vars(int y_max, int x_max, int position, const char *title, int value)
+WINDOW *create_window_var(int y_max, int x_max, int position)
 {
     WINDOW *local_win;
     unsigned int height = 3;
@@ -29,12 +29,23 @@ WINDOW *create_windows_vars(int y_max, int x_max, int position, const char *titl
     if (position == 1)
         width++;
 
-    local_win = create_newwin(height, width, 1, start_x);
+    local_win = newwin(height, width, 1, start_x);
+
+    return local_win;
+}
+
+void refresh_window_var(WINDOW *local_win, int value, char *title)
+{
+    unsigned int height = 3;
+    unsigned int width = 13;
+    unsigned int i;
+
+    box(local_win, 0, 0);
+    wrefresh(local_win);
+
     mvwprintw(local_win, 0, (width / 2) - (strlen(title) / 2), title);
     for (i = 0; i < value; i++)
-    {
         mvwprintw(local_win, 1, i + 1, "=");
-    }
 
     wrefresh(local_win);
 }

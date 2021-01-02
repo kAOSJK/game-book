@@ -6,8 +6,10 @@
 #include "lib.h"
 
 #define CREDITS_WAIT_TIME (1000000) /* real is 2500000 */
-#define DRAW_HEIGHT (8)
+#define DRAW_HEIGHT (9)
 #define DRAW_WIDTH (48)
+#define DRAW_2_HEIGHT (12)
+#define DRAW_2_WIDTH (44)
 
 char **sentence_separator(char *str, char *separator)
 {
@@ -108,11 +110,31 @@ char *open_file(FILE *fp, char *path, char *access_mode)
     return buffer;
 }
 
-void reload_windows_vars(int y_max, int x_max, int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin)
+void refresh_windows_vars(int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin)
 {
-    agilitywin = create_windows_vars(y_max, x_max, 0, "AGILITY", agilityval);
-    mentalwin = create_windows_vars(y_max, x_max, 1, "MENTAL", mentalval);
-    trustwin = create_windows_vars(y_max, x_max, 2, "TRUST", trustval);
+    char *agility_title = strdup("AGILITY");
+    char *mental_title = strdup("MENTAL");
+    char *trust_title = strdup("TRUST");
+
+    refresh_window_var(agilitywin, agilityval, agility_title);
+    refresh_window_var(mentalwin, mentalval, mental_title);
+    refresh_window_var(trustwin, trustval, trust_title);
+
+    free(agility_title);
+    agility_title = NULL;
+
+    free(mental_title);
+    mental_title = NULL;
+
+    free(trust_title);
+    trust_title = NULL;
+}
+
+void destroy_windows_vars(WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin)
+{
+    destroy_win(agilitywin);
+    destroy_win(mentalwin);
+    destroy_win(trustwin);
 }
 
 int add_agility_value(const int add_value, FILE *fp, char *buffer)
@@ -237,8 +259,6 @@ chapter *get_chapter_data(array_list *story, int chapter_index, char *buffer)
     else
         fprintf(stderr, "error: allocation of the pointer failed\n");
 
-    /*
-    free(next_key);*/
     free(chapter_name);
     chapter_name = NULL;
 
@@ -274,6 +294,7 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
     {
         free(npart);
         npart = NULL;
+
         fprintf(stderr, "error: can't find key\n");
         return NULL;
     }
@@ -346,8 +367,12 @@ char *get_first_key(unsigned int chapter_index, char *buffer)
     key = strdup(entrys[chapter_index]);
 
     for (i = 0; i < (unsigned int)length; i++)
+    {
         free(entrys[i]);
+        entrys[i] = NULL;
+    }
     free(entrys);
+    entrys = NULL;
 
     return key;
 }
@@ -396,6 +421,7 @@ void free_story_data(chapter **story)
     }
 
     story[i] = NULL;
+
     free(story);
     story = NULL;
 }
@@ -403,22 +429,28 @@ void free_story_data(chapter **story)
 void print_credits(int y_max, int x_max, char *language)
 {
     WINDOW *drawin;
+    WINDOW *drawin_2;
     WINDOW *win;
     FILE *fp;
+    char *language_cpy = strdup(language);
     /* MOVING WINDOW VARs */
     int move_res;
     bool need_switch = false;
-
-    /* */
+    /* DRAWINGS VARs */
     char *draw_0 = NULL;
     char *draw_1 = NULL;
     char *draw_2 = NULL;
-    /* */
+    char *draw_2_0 = NULL;
+    char *draw_2_1 = NULL;
+    char *draw_2_2 = NULL;
+    /* SIZE VARs */
     int height = y_max / 3;
     int width = x_max / 4;
+    int padding_right = 7;
     int y_pos = 0; /* mid is: y_max / 2 - ((height) / 2) */
-    int x_pos = x_max / 3;
+    int x_pos = x_max / 3 - padding_right - 12;
     int c; /* represent the current readed char in the file */
+    bool found_drawings = false;
 
     /* CREDITS WINDOW CREATION */
     win = create_newwin(height, width, y_pos, x_pos);
@@ -430,81 +462,105 @@ void print_credits(int y_max, int x_max, char *language)
     wrefresh(win);
 
     /* DRAW WINDOW CREATION */
-    drawin = newwin(DRAW_HEIGHT + 1, DRAW_WIDTH, y_max / 2 - (DRAW_HEIGHT / 2), x_max - DRAW_WIDTH - 1);
+    drawin = newwin(DRAW_HEIGHT, DRAW_WIDTH, y_max - DRAW_HEIGHT - 3, x_max - DRAW_WIDTH - 1 - padding_right);
     wrefresh(drawin);
 
+    drawin_2 = newwin(DRAW_2_HEIGHT, DRAW_WIDTH, 2, x_max - DRAW_2_WIDTH - 1 - padding_right);
+    wrefresh(drawin_2);
+
+    /* DRAW 1 */
     draw_0 = open_file(fp, "data/lion_0", "r");
     draw_1 = open_file(fp, "data/lion_1", "r");
     draw_2 = open_file(fp, "data/lion_2", "r");
 
+    /* DRAW 2 */
+    draw_2_0 = open_file(fp, "data/lion_2_0", "r");
+    draw_2_1 = open_file(fp, "data/lion_2_1", "r");
+    draw_2_2 = open_file(fp, "data/lion_2_2", "r");
+
     /* PRINTING WINDOWS */
-    if (draw_0 && draw_1 && draw_2)
+    if (draw_0 && draw_1 && draw_2 && draw_2_0 && draw_2_1 && draw_2_2)
+        found_drawings = true;
+
+    while (1)
     {
-        while (1)
+        if (found_drawings)
         {
             /* WRITE LION_0 */
             wprintw(drawin, draw_0);
-            fflush(stdout);
-            usleep(CREDITS_WAIT_TIME / 2);
             wrefresh(drawin);
 
-            /* MOVE CREDITS WIN */
-            !need_switch ? y_pos++ : y_pos--;
-            move_res = reload_credits_win(win, y_pos, x_pos);
-            if (move_res == -1)
-                need_switch = !need_switch;
+            wprintw(drawin_2, draw_2_0);
+            wrefresh(drawin_2);
+        }
 
-            nodelay(win, true);
-            if (wgetch(win) == 10)
-                break;
+        /* MOVE CREDITS WIN */
+        !need_switch ? y_pos++ : y_pos--;
+        move_res = reload_credits_win(win, y_pos, x_pos);
+        if (move_res == -1)
+            need_switch = !need_switch;
 
-            /* WAIT */
-            fflush(stdout);
-            usleep(CREDITS_WAIT_TIME);
-            wclear(drawin);
+        nodelay(win, true);
+        if (wgetch(win) == 10)
+            break;
 
+        /* WAIT */
+        fflush(stdout);
+        usleep(CREDITS_WAIT_TIME);
+        wclear(drawin);
+        wclear(drawin_2);
+
+        if (found_drawings)
+        {
             /* WRITE LION_1 */
             wprintw(drawin, draw_1);
-            fflush(stdout);
-            usleep(CREDITS_WAIT_TIME / 2);
             wrefresh(drawin);
 
-            /* MOVE CREDITS WIN */
-            !need_switch ? y_pos++ : y_pos--;
-            move_res = reload_credits_win(win, y_pos, x_pos);
-            if (move_res == -1)
-                need_switch = !need_switch;
+            wprintw(drawin_2, draw_2_1);
+            wrefresh(drawin_2);
+        }
 
-            nodelay(win, true);
-            if (wgetch(win) == 10)
-                break;
+        /* MOVE CREDITS WIN */
+        !need_switch ? y_pos++ : y_pos--;
+        move_res = reload_credits_win(win, y_pos, x_pos);
+        if (move_res == -1)
+            need_switch = !need_switch;
 
-            /* WAIT */
-            fflush(stdout);
-            usleep(CREDITS_WAIT_TIME);
-            wclear(drawin);
+        nodelay(win, true);
+        if (wgetch(win) == 10)
+            break;
 
+        /* WAIT */
+        fflush(stdout);
+        usleep(CREDITS_WAIT_TIME);
+        wclear(drawin);
+        wclear(drawin_2);
+
+        if (found_drawings)
+        {
             /* WRITE LION_2 */
             wprintw(drawin, draw_2);
-            fflush(stdout);
-            usleep(CREDITS_WAIT_TIME / 2);
             wrefresh(drawin);
 
-            /* MOVE CREDITS WIN */
-            !need_switch ? y_pos++ : y_pos--;
-            move_res = reload_credits_win(win, y_pos, x_pos);
-            if (move_res == -1)
-                need_switch = !need_switch;
-
-            nodelay(win, true);
-            if (wgetch(win) == 10)
-                break;
-
-            /* WAIT */
-            fflush(stdout);
-            usleep(CREDITS_WAIT_TIME);
-            wclear(drawin);
+            wprintw(drawin_2, draw_2_2);
+            wrefresh(drawin_2);
         }
+
+        /* MOVE CREDITS WIN */
+        !need_switch ? y_pos++ : y_pos--;
+        move_res = reload_credits_win(win, y_pos, x_pos);
+        if (move_res == -1)
+            need_switch = !need_switch;
+
+        nodelay(win, true);
+        if (wgetch(win) == 10)
+            break;
+
+        /* WAIT */
+        fflush(stdout);
+        usleep(CREDITS_WAIT_TIME);
+        wclear(drawin);
+        wclear(drawin_2);
     }
 
     free(draw_0);
@@ -516,19 +572,31 @@ void print_credits(int y_max, int x_max, char *language)
     free(draw_2);
     draw_2 = NULL;
 
+    free(draw_2_0);
+    draw_2_0 = NULL;
+
+    free(draw_2_1);
+    draw_2_1 = NULL;
+
+    free(draw_2_2);
+    draw_2_2 = NULL;
+
     destroy_win(drawin);
+    destroy_win(drawin_2);
     destroy_win(win);
 
-    play_menu(y_max, x_max, language);
+    play_menu(y_max, x_max, language_cpy);
 }
 
 int reload_credits_win(WINDOW *win, int y_pos, int x_pos)
 {
     int move_res;
 
-    /* MOVING THE WIN */
+    /* RESET WIN'S BORDERS */
     werase(win);
     wrefresh(win);
+
+    /* MOVE THE WIN */
     move_res = mvwin(win, y_pos, x_pos);
     box(win, 0, 0);
 

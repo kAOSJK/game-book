@@ -134,8 +134,10 @@ char *get_array_idx_key(char *buffer)
 {
 	char *answer = NULL;
 	char *token;
+
 	token = strtok(buffer, "\"");
 	token = strtok(NULL, "\"");
+
 	answer = malloc(strlen(token) + 1);
 	strcpy(answer, token);
 
@@ -155,15 +157,16 @@ int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer)
 	int res;
 
 	if (!key || *key == 0)
+	{
+		fprintf(stderr, "error: key is null\n");
 		return 0;
+	}
 
 	if (!buffer || *buffer == 0)
+	{
+		fprintf(stderr, "error: buffer is null\n");
 		return 0;
-
-	/*
-	printw("\nkey to add %s, value %d\n", key, new_value);
-	refresh();
-	getchar();*/
+	}
 
 	res = json_object_set_int(json_object_object_get(parsed_json, key), new_value);
 
@@ -173,7 +176,10 @@ int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer)
 	temp = open_file(fp, USER_DATA_PATH, "r");
 
 	if (temp == NULL)
+	{
+		fprintf(stderr, "error: temp buffer is null\n");
 		return 0;
+	}
 
 	strcpy(buffer, temp); /* reload buffer */
 
@@ -232,12 +238,54 @@ char *get_json_object_string(const char *key, const char *buffer)
 	return str;
 }
 
-void set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer)
+int set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer)
 {
 	struct json_object *parsed_json = json_tokener_parse(buffer);
-	json_object_set_string(json_object_object_get(parsed_json, key), new_value);
-	json_object_to_file(USER_DATA_PATH, parsed_json);	/* save json file */
-	strcpy(buffer, open_file(fp, USER_DATA_PATH, "r")); /* reload buffer */
+	char *temp = NULL;
+	int res;
+
+	if (!key || *key == 0)
+	{
+		fprintf(stderr, "error: key is null\n");
+		return 0;
+	}
+
+	if (!buffer || *buffer == 0)
+	{
+		fprintf(stderr, "error: buffer is null\n");
+		return 0;
+	}
+
+	res = json_object_set_string(json_object_object_get(parsed_json, key), new_value);
+
+	if (res == 1)
+		json_object_to_file(USER_DATA_PATH, parsed_json); /* save json file */
+
+	temp = open_file(fp, USER_DATA_PATH, "r");
+
+	if (temp == NULL)
+	{
+		fprintf(stderr, "error: temp buffer is null\n");
+		return 0;
+	}
+
+	/*
+	free(buffer);
+	buffer = NULL;
+
+	buffer = strdup(temp); reload buffer
+	*/
+
+	printw("\nfunction: %s\n", buffer);
+	refresh();
+	getchar();
+
+	free(temp);
+	temp = NULL;
+
+	json_object_put(parsed_json);
+
+	return 1;
 }
 
 void create_player_json_data()
@@ -253,4 +301,6 @@ void create_player_json_data()
 	json_object_object_add(nobj, "trust", json_object_new_int(0));
 
 	json_object_to_file(USER_DATA_PATH, nobj); /* save the file */
+
+	json_object_put(nobj);
 }

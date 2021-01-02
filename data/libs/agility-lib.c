@@ -15,16 +15,14 @@ bool agility(int y_max, int x_max, int size)
     /* SCREEN VARs */
     WINDOW *menuwin;
     WINDOW *loadwin;
-
     /* DATA VARs */
+    char *loading_str; /* loading bar that contains this advancment of the loading */
+    char *qte;         /* this is the string that contains the qte */
+    int validated = 0;
     int input;
     int j = 0;
-    int highlight = 0;
-    int validated = 0;
-    char *qte;
-    char *str;
 
-    str = (char *)malloc(sizeof(char) * 37);
+    loading_str = (char *)malloc(sizeof(char) * 37);
 
     /* CREATE A WINDOW FOR OUR INPUT */
     menuwin = create_newwin(3, 36, y_max / 2 - 1.5, x_max / 2 - 9);
@@ -51,7 +49,6 @@ bool agility(int y_max, int x_max, int size)
 
             if (input == get_key(qte[validated])) /* player success one qte's letter */
             {
-                highlight++;
                 validated++;
                 refresh_qte(menuwin, size, validated, qte, false);
             }
@@ -69,8 +66,8 @@ bool agility(int y_max, int x_max, int size)
 
             if (j < 34) /* loading bar */
             {
-                str[j] = '=';
-                mvwprintw(loadwin, 1, 1 + j, "%c", str[j]);
+                loading_str[j] = '=';
+                mvwprintw(loadwin, 1, 1 + j, "%c", loading_str[j]);
                 wrefresh(loadwin);
                 fflush(stdout);
                 usleep(LOADING_WAIT);
@@ -85,17 +82,17 @@ bool agility(int y_max, int x_max, int size)
     }
 
     /* Free */
-    free(str);
-    str = NULL;
+    free(loading_str);
+    loading_str = NULL;
 
     free(qte);
     qte = NULL;
 
-    /* Delete windows */
+    /* DELETE WINDOWS */
     destroy_win(menuwin);
     destroy_win(loadwin);
 
-    /* FINAL MESSAGE */
+    /* FINAL RETURN */
     if (validated == size)
         return true;
     else
