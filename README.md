@@ -1,6 +1,6 @@
 <h1 text-align="center">Welcome to my game-book project 👋</h1>
 <p>
-  <img alt="Version" src="https://img.shields.io/badge/version-0.1-blue.svg?cacheSeconds=2592000" />
+  <img alt="Version" src="https://img.shields.io/badge/version-0.8-blue.svg?cacheSeconds=2592000" />
   <a href="https://github.com/kefranabg/readme-md-generator#readme" target="_blank">
     <img alt="Documentation" src="https://img.shields.io/badge/documentation-no-red.svg" />
   </a>
@@ -14,10 +14,10 @@
 
 > Get ready to become your own hero in an interactive story created for a half-semester game book project made by four students.
 
-### 🏠 [Homepage](https://github.com/kefranabg/readme-md-generator#readme)
+### 🏠 Homepage
 
 ## Prerequisites
-
+- cmake >=3.10.2
 - make >=4.3.0
 - gcc >=10.2.0
 
