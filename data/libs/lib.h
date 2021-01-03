@@ -37,12 +37,10 @@ void get_json_array_data(char **data, char *key, char *buffer);
 size_t get_json_options_length(char *key, char *buffer);
 bool get_json_data_boolean(char *key, char *buffer);
 int get_json_data_int(char *key, char *buffer);
-/* object oriented lib */
 char *get_array_idx_key(char *buffer);
-int get_json_object_int(const char *key, const char *buffer);
-int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer);
+int set_json_object_int(char *key, const int new_value, char *buffer);
 char *get_json_object_string(const char *key, const char *buffer);
-int set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer);
+int set_json_object_string(char *key, const char *new_value, char *buffer);
 char *get_json_object_index_data(const char *object_key, unsigned int index_key, const char *buffer);
 void create_player_json_data(void);
 
@@ -58,10 +56,10 @@ int display_menu(int y_max, int x_max, char *language, char *buffer);
 char *display_languages(int y_max, int x_max, char *language, char *buffer);
 
 /* agility-lib.c */
-bool agility(int y_max, int x_max, int size);
+bool agility(int y_max, int x_max, int size, int speed);
 
 /* story-lib.c */
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name);
 char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer);
 char *get_part_date(part *dpart);
@@ -69,13 +67,16 @@ char *get_part_date(part *dpart);
 /* game-lib.c */
 char **sentence_separator(char *str, char *separator);
 char *int_to_word(int n);
-void update_json(char *temp, FILE *out);
-char *open_file(FILE *fp, char *path, char *access_mode);
+char *int_to_word_fr(int n);
+char *open_file(char *path, char *access_mode);
 void refresh_windows_vars(int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
 void destroy_windows_vars(WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
-int add_agility_value(const int add_value, FILE *fp, char *buffer);
-int add_mental_value(const int add_value, FILE *fp, char *buffer);
-int add_trust_value(const int add_value, FILE *fp, char *buffer);
+int add_agility_value(const int add_value, char *buffer);
+int add_mental_value(const int add_value, char *buffer);
+int add_trust_value(const int add_value, char *buffer);
+void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index);
+void print_credits(int y_max, int x_max, char *language);
+int reload_credits_win(WINDOW *win, int y_pos, int x_pos);
 /* data story oriented lib */
 json_object *get_part_text_data_by_key(array_list *story, char *key, int chapter_index, const char *buffer);
 chapter **get_story_data(array_list *story, char *buffer);
@@ -85,7 +86,5 @@ char *get_first_key(unsigned int chapter_index, char *buffer);
 void free_part(part *dpart);
 void free_chapter_data(chapter *data);
 void free_story_data(chapter **story);
-void print_credits(int y_max, int x_max, char *language);
-int reload_credits_win(WINDOW *win, int y_pos, int x_pos);
 
 #endif

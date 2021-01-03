@@ -144,13 +144,7 @@ char *get_array_idx_key(char *buffer)
 	return answer;
 }
 
-int get_json_object_int(const char *key, const char *buffer)
-{
-	struct json_object *parsed_json = json_tokener_parse(buffer);
-	return (int)json_object_get_int(json_object_object_get(parsed_json, key));
-}
-
-int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer)
+int set_json_object_int(char *key, const int new_value, char *buffer)
 {
 	struct json_object *parsed_json = json_tokener_parse(buffer);
 	char *temp = NULL;
@@ -173,7 +167,7 @@ int set_json_object_int(char *key, const int new_value, FILE *fp, char *buffer)
 	if (res == 1)
 		json_object_to_file(USER_DATA_PATH, parsed_json); /* save json file */
 
-	temp = open_file(fp, USER_DATA_PATH, "r");
+	temp = open_file(USER_DATA_PATH, "r");
 
 	if (temp == NULL)
 	{
@@ -238,7 +232,7 @@ char *get_json_object_string(const char *key, const char *buffer)
 	return str;
 }
 
-int set_json_object_string(char *key, const char *new_value, FILE *fp, char *buffer)
+int set_json_object_string(char *key, const char *new_value, char *buffer)
 {
 	struct json_object *parsed_json = json_tokener_parse(buffer);
 	char *temp = NULL;
@@ -261,7 +255,7 @@ int set_json_object_string(char *key, const char *new_value, FILE *fp, char *buf
 	if (res == 1)
 		json_object_to_file(USER_DATA_PATH, parsed_json); /* save json file */
 
-	temp = open_file(fp, USER_DATA_PATH, "r");
+	temp = open_file(USER_DATA_PATH, "r");
 
 	if (temp == NULL)
 	{

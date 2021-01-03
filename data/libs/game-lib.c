@@ -69,19 +69,35 @@ char *int_to_word(int n)
         return "\0";
 }
 
-void update_json(char *buffer, FILE *out)
+char *int_to_word_fr(int n)
 {
-    out = fopen("data/player.json", "w");
-    fputs(buffer, out);
-
-    free(buffer);
-    buffer = NULL;
-
-    fclose(out);
+    if (n == 1)
+        return "premier";
+    else if (n == 2)
+        return "deuxieme";
+    else if (n == 3)
+        return "troisieme";
+    else if (n == 4)
+        return "quatrieme";
+    else if (n == 5)
+        return "cinquieme";
+    else if (n == 6)
+        return "sixieme";
+    else if (n == 7)
+        return "septieme";
+    else if (n == 8)
+        return "huitieme";
+    else if (n == 9)
+        return "neuvieme";
+    else if (n == 10)
+        return "dixieme";
+    else
+        return "\0";
 }
 
-char *open_file(FILE *fp, char *path, char *access_mode)
+char *open_file(char *path, char *access_mode)
 {
+    FILE *fp;
     char *buffer = NULL;
     size_t size;
 
@@ -137,37 +153,61 @@ void destroy_windows_vars(WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwi
     destroy_win(trustwin);
 }
 
-int add_agility_value(const int add_value, FILE *fp, char *buffer)
+int add_agility_value(const int add_value, char *buffer)
 {
     int new_agility = get_json_data_int("agility", buffer) + add_value;
     int res;
 
-    set_json_object_int("agility", new_agility, fp, buffer);
+    set_json_object_int("agility", new_agility, buffer);
 
     return res;
 }
 
-int add_mental_value(const int add_value, FILE *fp, char *buffer)
+int add_mental_value(const int add_value, char *buffer)
 {
     int new_mental = get_json_data_int("mental", buffer) + add_value;
     int res;
 
-    res = set_json_object_int("mental", new_mental, fp, buffer);
+    res = set_json_object_int("mental", new_mental, buffer);
 
     return res;
 }
 
-int add_trust_value(const int add_value, FILE *fp, char *buffer)
+int add_trust_value(const int add_value, char *buffer)
 {
     int new_trust = get_json_data_int("trust", buffer) + add_value;
     int res;
 
-    res = set_json_object_int("trust", new_trust, fp, buffer);
+    res = set_json_object_int("trust", new_trust, buffer);
 
     return res;
 }
 
-/* data story oriented lib */
+void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index)
+{
+    WINDOW *win;
+    char *title = get_array_idx_key((char *)json_object_to_json_string(array_list_get_idx(story, chapter_index)));
+    unsigned int i;
+
+    win = create_newwin(3, strlen(title) + 4, y_max / 2 - 1.5, x_max / 2 - (strlen(title) / 2));
+    while (1)
+    {
+        /* PRINT CAPITALIZED TITLE */
+        for (i = 0; title[i]; i++)
+            mvwprintw(win, 1, 2 + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
+
+        wrefresh(win);
+        if (wgetch(win) == 10)
+            break;
+    }
+
+    free(title);
+    title = NULL;
+
+    destroy_win(win);
+}
+
+/* DATA STORY ORIENTED LIB */
 
 json_object *get_part_text_data_by_key(array_list *story, char *key, int chapter_index, const char *buffer)
 {
@@ -440,7 +480,6 @@ void print_credits(int y_max, int x_max, char *language)
     WINDOW *drawin;
     WINDOW *drawin_2;
     WINDOW *win;
-    FILE *fp;
     char *language_cpy = strdup(language);
     /* MOVING WINDOW VARs */
     int move_res;
@@ -478,14 +517,14 @@ void print_credits(int y_max, int x_max, char *language)
     wrefresh(drawin_2);
 
     /* DRAW 1 */
-    draw_0 = open_file(fp, "data/lion_0", "r");
-    draw_1 = open_file(fp, "data/lion_1", "r");
-    draw_2 = open_file(fp, "data/lion_2", "r");
+    draw_0 = open_file("data/lion_0", "r");
+    draw_1 = open_file("data/lion_1", "r");
+    draw_2 = open_file("data/lion_2", "r");
 
     /* DRAW 2 */
-    draw_2_0 = open_file(fp, "data/lion_2_0", "r");
-    draw_2_1 = open_file(fp, "data/lion_2_1", "r");
-    draw_2_2 = open_file(fp, "data/lion_2_2", "r");
+    draw_2_0 = open_file("data/lion_2_0", "r");
+    draw_2_1 = open_file("data/lion_2_1", "r");
+    draw_2_2 = open_file("data/lion_2_2", "r");
 
     /* PRINTING WINDOWS */
     if (draw_0 && draw_1 && draw_2 && draw_2_0 && draw_2_1 && draw_2_2)
@@ -609,6 +648,10 @@ int reload_credits_win(WINDOW *win, int y_pos, int x_pos)
     move_res = mvwin(win, y_pos, x_pos);
     box(win, 0, 0);
 
+    /* TODO: ASCII ART CREDITS
+    Tobias Benjamin Koehler (lion_3_0 & lion_3_1)
+
+    */
     /* WRITING CREDITS CONTENT */
     mvwprintw(win, 1, 3, "Director: Bertrand Eliot");
     mvwprintw(win, 3, 3, "Designer: Bertrand Eliot");

@@ -8,7 +8,7 @@
 
 #define CHAR_SEPARATOR "$"
 
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
 {
     /* WINDOWS VARs */
     FILE *fp;
@@ -50,6 +50,9 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
     if (current_part != NULL)
         text = sentence_separator(current_part->text, CHAR_SEPARATOR);
 
+    for (i = 1; i <= 5; i++)
+        mvwprintw(topwin, i, width / 3, "%c", '|');
+
     /* TODO: CHANGE ORDER OF WRITING DATE DEPENDING ON THE CHOOSEN LANGUAGE */
     /* GET AND WRITE DATE */
     date = get_part_date(current_part);
@@ -57,9 +60,9 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
     {
         for (i = 0; date[i]; i++)
         {
-            mvwprintw(topwin, top_height / 2, ((width / 4) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
+            mvwprintw(topwin, top_height / 2, (((width / 3) / 2) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
             fflush(stdout);
-            usleep(100000); /* speed_0 * 10 */
+            usleep(speed_0); /* speed_0 * 10 */
             wrefresh(topwin);
         }
     }
@@ -70,9 +73,9 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
     {
         for (i = 0; title[i]; i++)
         {
-            mvwprintw(topwin, top_height / 2, width - ((width / 4) - (strlen(title) / 2)) + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
+            mvwprintw(topwin, top_height / 2, (width / 2) + ((width / 3) / 2) - (strlen(title) / 2) + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
             fflush(stdout);
-            usleep(100000); /* speed_0 * 10 */
+            usleep(speed_0); /* speed_0 * 10 */
             wrefresh(topwin);
         }
     }
@@ -80,11 +83,16 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
     /* WRITE THE CHAPTER */
     while (text != NULL)
     {
+        for (i = 1; i <= 5; i++)
+        {
+            mvwprintw(topwin, i, width / 3, "%c", '|');
+        }
+
         /* WRITE TITLE */
         if (title != NULL)
         {
             for (i = 0; title[i]; i++)
-                mvwprintw(topwin, top_height / 2, width - ((width / 4) - (strlen(title) / 2)) + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
+                mvwprintw(topwin, top_height / 2, (width / 2) + ((width / 3) / 2) - (strlen(title) / 2) + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
             wrefresh(topwin);
         }
 
@@ -102,9 +110,9 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
                 date = get_part_date(current_part);
                 for (i = 0; date[i]; i++)
                 {
-                    mvwprintw(topwin, top_height / 2, ((width / 4) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
+                    mvwprintw(topwin, top_height / 2, (((width / 3) / 2) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
                     fflush(stdout);
-                    usleep(100000); /* speed_0 * 10 */
+                    usleep(speed_0); /* speed_0 * 10 */
                     wrefresh(topwin);
                 }
             }
@@ -115,7 +123,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
         else if (date != NULL)
         {
             for (i = 0; date[i]; i++)
-                mvwprintw(topwin, top_height / 2, ((width / 4) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
+                mvwprintw(topwin, top_height / 2, (((width / 3) / 2) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
             wrefresh(topwin);
         }
 
@@ -133,11 +141,11 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
             skill_type = strdup(json_object_get_string(json_object_object_get(current_part->upgrade, "skill_type")));
 
             if (strcmp(skill_type, "agility") == 0)
-                add_agility_value(add_value, fp, usr_buffer);
+                add_agility_value(add_value, usr_buffer);
             else if (strcmp(skill_type, "mental") == 0)
-                add_mental_value(add_value, fp, usr_buffer);
+                add_mental_value(add_value, usr_buffer);
             else if (strcmp(skill_type, "trust") == 0)
-                add_trust_value(add_value, fp, usr_buffer);
+                add_trust_value(add_value, usr_buffer);
 
             free(skill_type);
             skill_type = NULL;
@@ -176,7 +184,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
             werase(bottomwin);
             wrefresh(bottomwin);
 
-            result = agility(y_max, x_max, test_difficulty);
+            result = agility(y_max, x_max, test_difficulty, agility_speed);
 
             if (result == true) /* mean that the player succeed the test */
                 key = strdup((char *)json_object_get_string(json_object_object_get(current_part->test, "win_next_key")));
@@ -233,9 +241,11 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
 
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name)
 {
-    size_t i, j;
-    bool skip = false;
+    int number_line = 0;
+    int padding_top = (y_max / 2 - (y_max / 10)) / 2;
     int wait_time = speed_0;
+    bool skip = false;
+    size_t i, j;
     /* NAME VARs */
     unsigned int k = 0;
     unsigned int wrote_name;
@@ -244,7 +254,14 @@ void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, in
     while (name[n + 1])
         n++;
 
-    /* TODO: ASK TO THE GD IF I NEED TO PRINT IN THE MIDDLE DEPENDING THE NUMBERS OF LINE OR WHAT */
+    while (story[number_line])
+        number_line++;
+
+    padding_top -= number_line / 2;
+
+    if (number_line % 2 != 0)
+        padding_top--;
+
     while (1)
     {
         for (j = 0; story[j]; j++)
@@ -265,7 +282,7 @@ void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, in
                 {
                     while (name[k])
                     {
-                        mvwprintw(win, 1 + j, 2 + i + k + (n * wrote_name), "%c", name[k]);
+                        mvwprintw(win, j + padding_top, 2 + i + k + (n * wrote_name), "%c", name[k]);
                         fflush(stdout);
                         usleep(wait_time);
                         k++;
@@ -275,11 +292,11 @@ void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, in
                 }
 
                 if (!wrote_name)
-                    mvwprintw(win, 1 + j, 2 + i, "%c", story[j][i]);
+                    mvwprintw(win, j + padding_top, 2 + i, "%c", story[j][i]);
                 else
                 {
                     if (story[j][i] != '&')
-                        mvwprintw(win, 1 + j, 2 + i + (n * wrote_name), "%c", story[j][i]);
+                        mvwprintw(win, j + padding_top, 2 + i + (n * wrote_name), "%c", story[j][i]);
                 }
 
                 wrefresh(win);

@@ -4,17 +4,17 @@
 #include <time.h>
 #include "lib.h"
 
-#define LOADING_WAIT (100000)
-
 int get_key(char input);
 void refresh_qte(WINDOW *win, int size, int validated, char *qte, bool failed);
 char *randomize_qte(int size);
 
-bool agility(int y_max, int x_max, int size)
+bool agility(int y_max, int x_max, int size, int speed)
 {
-    /* SCREEN VARs */
+    /* WINDOWS VARs */
     WINDOW *menuwin;
     WINDOW *loadwin;
+    int height = 3;
+    int width = 36;
     /* DATA VARs */
     char *loading_str; /* loading bar that contains this advancment of the loading */
     char *qte;         /* this is the string that contains the qte */
@@ -25,10 +25,10 @@ bool agility(int y_max, int x_max, int size)
     loading_str = (char *)malloc(sizeof(char) * 37);
 
     /* CREATE A WINDOW FOR OUR INPUT */
-    menuwin = create_newwin(3, 36, y_max / 2 - 1.5, x_max / 2 - 9);
+    menuwin = create_newwin(height, width, y_max / 2 - (height / 2), x_max / 2 - (width / 2));
     wborder(menuwin, '|', '|', '-', '-', '+', '+', '+', '+');
 
-    loadwin = create_newwin(3, 36, y_max / 2 - 5.5, x_max / 2 - 9);
+    loadwin = create_newwin(height, width, y_max / 2 - height - 1, x_max / 2 - (width / 2));
     box(loadwin, 0, 0);
 
     keypad(menuwin, true); /* Activate arrow keys */
@@ -59,7 +59,7 @@ bool agility(int y_max, int x_max, int size)
 
                 wrefresh(menuwin);
                 fflush(stdout);
-                usleep(LOADING_WAIT * 10);
+                usleep(speed * 10);
 
                 break; /* player failed */
             }
@@ -70,7 +70,7 @@ bool agility(int y_max, int x_max, int size)
                 mvwprintw(loadwin, 1, 1 + j, "%c", loading_str[j]);
                 wrefresh(loadwin);
                 fflush(stdout);
-                usleep(LOADING_WAIT);
+                usleep(speed);
                 j++;
             }
             else

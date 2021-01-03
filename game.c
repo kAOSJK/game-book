@@ -8,16 +8,14 @@
 
 #define DEFAULT_TEXT_SPEED_0 (50000)
 #define DEFAULT_TEXT_SPEED_1 (10000)
+#define DEFAULT_AGILITY_SPEED (10000)
 #define DEFAULT_MAX_NAME_SIZE (10)
 #define DEFAULT_LANGUAGE ("english")
 
-void play_menu(int y_max, int x_max, char *language);
+void play_menu(int, int, char *);
 void play_game(int, int, char *, char *, char *);
-void play_agility_game(int, int);
-void display_title(int, int, array_list *, unsigned int);
+void play_agility_game(int, int, int, char *);
 char *ask_new_name(int, int, size_t, char *);
-char *int_to_word(int);
-void update_json(char *temp, FILE *out);
 
 int main()
 {
@@ -25,9 +23,8 @@ int main()
     char *language = NULL;
     char *buffer = NULL;
     int y_max, x_max;
-    FILE *fp;
 
-    buffer = open_file(fp, "data/data.json", "r"); /* get json data file */
+    buffer = open_file("data/data.json", "r"); /* get json data file */
 
     if (buffer == NULL) /* if the file does not exist, exit*/
         return 0;
@@ -64,11 +61,11 @@ void play_menu(int y_max, int x_max, char *language)
     /* BASIC VARs */
     char *languages_answer = NULL;
     int menu_answer;
+    int agility_speed;
     /* JSON VARs */
     char *usr_buffer = NULL;
     char *buffer = NULL;
     FILE *user = NULL;
-    FILE *fp = NULL;
     /* NAME VARs */
     char *name = NULL;
     int max_name_size;
@@ -76,7 +73,7 @@ void play_menu(int y_max, int x_max, char *language)
     /* READ AND GET JSON DATA */
     user = fopen("data/user.json", "r");
 
-    buffer = open_file(fp, "data/data.json", "r");
+    buffer = open_file("data/data.json", "r");
 
     /*
     printw("current language is: %s", language);
@@ -95,7 +92,7 @@ void play_menu(int y_max, int x_max, char *language)
         if (user == NULL)              /* means that the user play for the first time */
             create_player_json_data(); /* after this function call, the file user.json is created */
 
-        usr_buffer = open_file(user, "data/user.json", "r"); /* open user file */
+        usr_buffer = open_file("data/user.json", "r"); /* open user file */
 
         name = get_json_object_string("name", usr_buffer); /* get the player name key */
         if (!name || *name == 0)                           /* if it's empty, ask again a name */
@@ -109,20 +106,24 @@ void play_menu(int y_max, int x_max, char *language)
 
             name = ask_new_name(y_max, x_max, max_name_size, buffer);
 
-            set_json_object_string("name", name, user, usr_buffer);
+            set_json_object_string("name", name, usr_buffer);
 
             /* RELOAD USER BUFFER */
             free(usr_buffer);
             usr_buffer = NULL;
 
-            usr_buffer = open_file(user, "data/user.json", "r");
+            usr_buffer = open_file("data/user.json", "r");
         }
 
         play_game(y_max, x_max, buffer, usr_buffer, name);
     }
     else if (menu_answer == 1)
     {
-        play_agility_game(y_max, x_max);
+        agility_speed = get_json_data_int("agility_speed", buffer); /* default agility speed */
+        if (!agility_speed)
+            agility_speed = DEFAULT_AGILITY_SPEED; /* if agility_speed is NULL, load static default agility speed 1 */
+
+        play_agility_game(y_max, x_max, agility_speed, language);
     }
     else if (menu_answer == 2)
     {
@@ -175,6 +176,7 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
     char **chapters;
     unsigned int *chapter_length;
     unsigned int speed_0, speed_1;
+    unsigned int agility_speed;
     unsigned int story_length;
     unsigned int i, j;
 
@@ -184,7 +186,10 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
         speed_0 = DEFAULT_TEXT_SPEED_0;                  /* if speed_0 is NULL, load static default text speed 0 */
     speed_1 = get_json_data_int("text_speed_1", buffer); /* skipped text speed */
     if (!speed_1)
-        speed_1 = DEFAULT_TEXT_SPEED_1; /* if speed_1 is NULL, load static default text speed 1 */
+        speed_1 = DEFAULT_TEXT_SPEED_1;                         /* if speed_1 is NULL, load static default text speed 1 */
+    agility_speed = get_json_data_int("agility_speed", buffer); /* default agility speed */
+    if (!agility_speed)
+        agility_speed = DEFAULT_AGILITY_SPEED; /* if agility_speed is NULL, load static default agility speed 1 */
 
     /* GET GAME DATA */
     parsed_json = json_tokener_parse(buffer);
@@ -197,35 +202,11 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
     {
         display_title(y_max, x_max, parsed_story, i);
 
-        begin_chapter(y_max, x_max, speed_0, speed_1, story[i], i, parsed_story, name, buffer, usr_buffer);
+        begin_chapter(y_max, x_max, speed_0, speed_1, agility_speed, story[i], i, parsed_story, name, buffer, usr_buffer);
     }
 
     free_story_data(story);
     int res = json_object_put(parsed_json); /* if res == 1 mean that it's a success */
-}
-
-void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index)
-{
-    WINDOW *win;
-    char *title = get_array_idx_key((char *)json_object_to_json_string(array_list_get_idx(story, chapter_index)));
-    unsigned int i;
-
-    win = create_newwin(3, strlen(title) + 4, y_max / 2 - 1.5, x_max / 2 - (strlen(title) / 2));
-    while (1)
-    {
-        /* PRINT CAPITALIZED TITLE */
-        for (i = 0; title[i]; i++)
-            mvwprintw(win, 1, 2 + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
-
-        wrefresh(win);
-        if (wgetch(win) == 10)
-            break;
-    }
-
-    free(title);
-    title = NULL;
-
-    destroy_win(win);
 }
 
 char *ask_new_name(int y_max, int x_max, size_t max_size, char *buffer)
@@ -314,21 +295,32 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *buffer)
     return name;
 }
 
-void play_agility_game(int y_max, int x_max)
+void play_agility_game(int y_max, int x_max, int speed, char *language)
 {
+    /* BASICS VARs */
     WINDOW *win;
-    unsigned int i = 1;
+    char *language_cpy = strdup(language);
+    int height = y_max / 4;
+    int width = x_max - 4;
     unsigned int score = 0;
+    unsigned int i = 1;
 
-    win = create_newwin(7, x_max - 6, y_max - 8, 3);
+    /* WINDOW SETTINGS */
+    win = newwin(height, width, y_max - height - 1, 2);
+    wrefresh(win);
+
     while (i <= 10)
     {
-        if (agility(y_max, x_max, 6))
+        if (agility(y_max, x_max, 6, speed))
         {
             while (1)
             {
                 box(win, 0, 0);
-                mvwprintw(win, 1, 2, "You have passed the %s agility test", int_to_word(i));
+                if (strcmp(language, "english") == 0)
+                    mvwprintw(win, 1, 2, "You have passed the %s agility test", int_to_word(i));
+                else if (strcmp(language, "french") == 0)
+                    mvwprintw(win, 1, 2, "Vous avez reussi le %s test d'agilite", int_to_word_fr(i));
+
                 if (wgetch(win) == 10)
                     break;
             }
@@ -340,7 +332,11 @@ void play_agility_game(int y_max, int x_max)
             while (1)
             {
                 box(win, 0, 0);
-                mvwprintw(win, 1, 2, "You failed the %s agility test", int_to_word(i));
+                if (strcmp(language, "english") == 0)
+                    mvwprintw(win, 1, 2, "You failed the %s agility test", int_to_word(i));
+                else if (strcmp(language, "french") == 0)
+                    mvwprintw(win, 1, 2, "Vous avez echoue au %s test d'agilite", int_to_word_fr(i));
+
                 if (wgetch(win) == 10)
                     break;
             }
@@ -359,4 +355,6 @@ void play_agility_game(int y_max, int x_max)
     }
 
     destroy_win(win);
+
+    play_menu(y_max, x_max, language_cpy);
 }
