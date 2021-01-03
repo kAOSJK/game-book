@@ -269,17 +269,6 @@ int set_json_object_string(char *key, const char *new_value, FILE *fp, char *buf
 		return 0;
 	}
 
-	/*
-	free(buffer);
-	buffer = NULL;
-
-	buffer = strdup(temp); reload buffer
-	*/
-
-	printw("\nfunction: %s\n", buffer);
-	refresh();
-	getchar();
-
 	free(temp);
 	temp = NULL;
 

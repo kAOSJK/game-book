@@ -8,10 +8,19 @@
 
 #define CHAR_SEPARATOR "$"
 
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin)
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
 {
+    /* WINDOWS VARs */
     FILE *fp;
+    WINDOW *topwin;
     WINDOW *win;
+    WINDOW *bottomwin;
+    int top_height = y_max / 4;
+    int height = y_max / 2 - (y_max / 10);
+    int width = x_max - 4;
+    int bottom_height = y_max / 4;
+    /* BASICS VARs*/
+    char *title = NULL;
     part *current_part;
     char **text = NULL;
     char **temp = NULL;
@@ -22,12 +31,15 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
     /* UPGRADE VARs */
     char *skill_type = NULL;
     int add_value;
-
-    /* REFRESH WINDOWS VARs */
-    refresh_windows_vars(get_json_data_int("agility", usr_buffer), get_json_data_int("mental", usr_buffer), get_json_data_int("trust", usr_buffer), agilitywin, mentalwin, trustwin);
+    /* OTHERS VARs */
+    char *new_date = NULL;
+    char *date = NULL;
+    unsigned int i;
 
     /* CREATE A WINDOW FOR OUR INPUT */
-    win = create_newwin(8, x_max - 4, y_max - 9, 2);
+    topwin = create_newwin(top_height, width, 1, 2);
+    win = create_newwin(height, width, y_max - (height + ((height / 4) * 3)), 2);
+    bottomwin = create_newwin(bottom_height, width, y_max - bottom_height - 1, 2);
 
     /* GET FIRST CHAPTER KEY */
     key = get_first_key(chapter_index, buffer);
@@ -38,11 +50,77 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
     if (current_part != NULL)
         text = sentence_separator(current_part->text, CHAR_SEPARATOR);
 
+    /* TODO: CHANGE ORDER OF WRITING DATE DEPENDING ON THE CHOOSEN LANGUAGE */
+    /* GET AND WRITE DATE */
+    date = get_part_date(current_part);
+    if (date != NULL)
+    {
+        for (i = 0; date[i]; i++)
+        {
+            mvwprintw(topwin, top_height / 2, ((width / 4) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
+            fflush(stdout);
+            usleep(100000); /* speed_0 * 10 */
+            wrefresh(topwin);
+        }
+    }
+
+    /* GET AND WRITE TITLE */
+    title = get_array_idx_key((char *)json_object_to_json_string(array_list_get_idx(parsed_story, chapter_index)));
+    if (title != NULL)
+    {
+        for (i = 0; title[i]; i++)
+        {
+            mvwprintw(topwin, top_height / 2, width - ((width / 4) - (strlen(title) / 2)) + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
+            fflush(stdout);
+            usleep(100000); /* speed_0 * 10 */
+            wrefresh(topwin);
+        }
+    }
+
+    /* WRITE THE CHAPTER */
     while (text != NULL)
     {
+        /* WRITE TITLE */
+        if (title != NULL)
+        {
+            for (i = 0; title[i]; i++)
+                mvwprintw(topwin, top_height / 2, width - ((width / 4) - (strlen(title) / 2)) + i, "%c", (IS_LOWER_CASE(title[i]) ? title[i] - 32 : title[i]));
+            wrefresh(topwin);
+        }
+
+        /* WRITE DATE */
+        if (current_part->date != NULL)
+        {
+            new_date = get_part_date(current_part);
+
+            /* WRITE IT IF ITS NEW */
+            if (strcmp(date, new_date) != 0)
+            {
+                free(date);
+                date = NULL;
+
+                date = get_part_date(current_part);
+                for (i = 0; date[i]; i++)
+                {
+                    mvwprintw(topwin, top_height / 2, ((width / 4) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
+                    fflush(stdout);
+                    usleep(100000); /* speed_0 * 10 */
+                    wrefresh(topwin);
+                }
+            }
+
+            free(new_date);
+            new_date = NULL;
+        }
+        else if (date != NULL)
+        {
+            for (i = 0; date[i]; i++)
+                mvwprintw(topwin, top_height / 2, ((width / 4) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
+            wrefresh(topwin);
+        }
+
         /* WRITE STORY */
         write_text(text, win, y_max, x_max, speed_0, speed_1, name);
-        clear_win(win);
 
         /* FREE KEY */
         free(key);
@@ -63,37 +141,40 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
 
             free(skill_type);
             skill_type = NULL;
-
-            refresh_windows_vars(get_json_data_int("agility", usr_buffer), get_json_data_int("mental", usr_buffer), get_json_data_int("trust", usr_buffer), agilitywin, mentalwin, trustwin);
         }
 
         if (current_part->next_key != NULL && *current_part->next_key != 0)
         {
+            clear_win(win);
+
             /* mean that the next key is linear */
             key = strdup(current_part->next_key);
         }
         else if (current_part->choices != NULL)
         {
             /* mean that the next key depends on player's choice */
-            key = get_user_choices(win, current_part->choices, usr_buffer);
+            key = get_user_choices(bottomwin, current_part->choices, usr_buffer);
+
+            /* reload win */
+            box(win, 0, 0);
+            wrefresh(win);
         }
         else if (current_part->test != NULL)
         {
+            clear_win(win);
+
             /* mean that the next key depends on player's result on a test */
             test_difficulty = json_object_get_int(json_object_object_get(current_part->test, "difficulty"));
 
             /* stop displaying all windows (during the test) */
+            werase(topwin);
+            wrefresh(topwin);
+
             werase(win);
             wrefresh(win);
 
-            werase(agilitywin);
-            wrefresh(agilitywin);
-
-            werase(mentalwin);
-            wrefresh(mentalwin);
-
-            werase(trustwin);
-            wrefresh(trustwin);
+            werase(bottomwin);
+            wrefresh(bottomwin);
 
             result = agility(y_max, x_max, test_difficulty);
 
@@ -101,8 +182,11 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
                 key = strdup((char *)json_object_get_string(json_object_object_get(current_part->test, "win_next_key")));
             else /* mean that the player failed the test */
                 key = strdup((char *)json_object_get_string(json_object_object_get(current_part->test, "lose_next_key")));
-            clear_win(win);
         }
+
+        clear_win(topwin);
+        clear_win(win);
+        clear_win(bottomwin);
 
         /* FREE CURRENT PART */
         free_part(current_part);
@@ -136,7 +220,15 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap
         text = sentence_separator(current_part->text, CHAR_SEPARATOR);
     }
 
+    free(title);
+    title = NULL;
+
+    free(date);
+    date = NULL;
+
+    destroy_win(topwin);
     destroy_win(win);
+    destroy_win(bottomwin);
 }
 
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name)
@@ -149,11 +241,10 @@ void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, in
     unsigned int wrote_name;
     unsigned int n = 0;
 
-    keypad(win, true);
-
     while (name[n + 1])
         n++;
 
+    /* TODO: ASK TO THE GD IF I NEED TO PRINT IN THE MIDDLE DEPENDING THE NUMBERS OF LINE OR WHAT */
     while (1)
     {
         for (j = 0; story[j]; j++)
@@ -211,7 +302,6 @@ char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer)
     int choice = 0;                       /* player selection */
     int highlight = 0;                    /* to hightlight the right player selection */
     int i = 0;
-
     /* SPECIAL CHOICES VARs */
     json_object *obj_needed_skill = NULL;
     json_object *obj_needed_value = NULL;
@@ -325,4 +415,47 @@ char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer)
     clear_win(win);
 
     return answer;
+}
+
+char *get_part_date(part *dpart)
+{
+    char *date = NULL;
+    char *day = NULL;
+    char *month = NULL;
+    char *year = NULL;
+
+    if (dpart == NULL)
+        return NULL;
+
+    if (dpart->date == NULL)
+        return NULL;
+
+    /* GET ALL DATE DATA */
+    day = malloc(sizeof(char) * 3);  /* maximum number of digits + 1 */
+    year = malloc(sizeof(char) * 5); /* maximum number of digits + 1 */
+
+    sprintf(day, "%d", json_object_get_int(json_object_object_get(dpart->date, "day")));
+    month = strdup(json_object_get_string(json_object_object_get(dpart->date, "month")));
+    sprintf(year, "%d", json_object_get_int(json_object_object_get(dpart->date, "year")));
+
+    /* PUT ALL DATE DATA TO DATE CHAR* */
+    date = malloc(sizeof(char) * (strlen(day) + strlen(month) + strlen(year)) + 1 + 1 + 1);
+
+    strcpy(date, day);
+    strcat(date, " ");
+    strcat(date, month);
+    strcat(date, " ");
+    strcat(date, year);
+
+    /* FREEs */
+    free(day);
+    day = NULL;
+
+    free(month);
+    month = NULL;
+
+    free(year);
+    year = NULL;
+
+    return date;
 }

@@ -273,6 +273,7 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
     json_object *obj_text;
     json_object *obj_upgrade;
     array_list *obj_choices;
+    json_object *obj_date;
     json_object *obj_test;
     json_object *obj_next_key;
 
@@ -281,6 +282,7 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
     npart->upgrade = NULL;
     npart->choices = NULL;
     npart->test = NULL;
+    npart->date = NULL;
     npart->next_key = NULL;
 
     if (npart == NULL)
@@ -302,6 +304,7 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
     json_object_object_get_ex(obj, "key", &obj_key);
     json_object_object_get_ex(obj, "text", &obj_text);
     json_object_object_get_ex(obj, "upgrade", &obj_upgrade);
+    json_object_object_get_ex(obj, "date", &obj_date);
     obj_choices = json_object_get_array(json_object_object_get(obj, "choices"));
     json_object_object_get_ex(obj, "test", &obj_test);
     json_object_object_get_ex(obj, "next_key", &obj_next_key);
@@ -320,6 +323,12 @@ part *get_part_data(array_list *story, char *key, int chapter_index, const char 
         npart->text = strdup(json_object_get_string(obj_text));
         if (npart->text == NULL)
             fprintf(stderr, "error: allocation of the pointer failed\n");
+    }
+
+    /* PUT THE POTENTIAL DATE TO THE NEW PART */
+    if (obj_date != NULL)
+    {
+        npart->date = obj_date;
     }
 
     /* PUT THE POTENTIAL UPGRADE TO THE NEW PART */

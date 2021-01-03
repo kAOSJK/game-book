@@ -18,6 +18,7 @@ typedef struct
     json_object *upgrade;
     array_list *choices;
     json_object *test;
+    json_object *date;
     char *next_key;
 } part;
 
@@ -60,9 +61,10 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer);
 bool agility(int y_max, int x_max, int size);
 
 /* story-lib.c */
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name);
 char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer);
+char *get_part_date(part *dpart);
 
 /* game-lib.c */
 char **sentence_separator(char *str, char *separator);

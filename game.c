@@ -27,9 +27,6 @@ int main()
     int y_max, x_max;
     FILE *fp;
 
-    /* TODO: responsive
-    Responsive : The game adapts itself to the size of the terminal */
-
     buffer = open_file(fp, "data/data.json", "r"); /* get json data file */
 
     if (buffer == NULL) /* if the file does not exist, exit*/
@@ -169,9 +166,6 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
 {
     /* WINDOWS VARs */
     WINDOW *titlewin;
-    WINDOW *agilitywin;
-    WINDOW *mentalwin;
-    WINDOW *trustwin;
     /* STORY JSON VARs */
     struct json_object *parsed_json;
     struct array_list *parsed_story;
@@ -196,11 +190,6 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
     parsed_json = json_tokener_parse(buffer);
     parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
 
-    /* CREATE WINDOWS VARs */
-    agilitywin = create_window_var(y_max, x_max, 0);
-    mentalwin = create_window_var(y_max, x_max, 1);
-    trustwin = create_window_var(y_max, x_max, 2);
-
     /* STORE DATA */
     story = get_story_data(parsed_story, buffer);
 
@@ -208,13 +197,11 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
     {
         display_title(y_max, x_max, parsed_story, i);
 
-        begin_chapter(y_max, x_max, speed_0, speed_1, story[i], i, parsed_story, name, buffer, usr_buffer, agilitywin, mentalwin, trustwin);
+        begin_chapter(y_max, x_max, speed_0, speed_1, story[i], i, parsed_story, name, buffer, usr_buffer);
     }
 
     free_story_data(story);
     int res = json_object_put(parsed_json); /* if res == 1 mean that it's a success */
-
-    destroy_windows_vars(agilitywin, mentalwin, trustwin);
 }
 
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index)
