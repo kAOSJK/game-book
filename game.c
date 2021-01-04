@@ -1,9 +1,3 @@
-#define _DEFAULT_SOURCE
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
 #include "data/libs/lib.h"
 
 #define DEFAULT_TEXT_SPEED_0 (50000)
@@ -165,20 +159,14 @@ void play_menu(int y_max, int x_max, char *language)
 
 void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
 {
-    /* WINDOWS VARs */
-    WINDOW *titlewin;
     /* STORY JSON VARs */
     struct json_object *parsed_json;
     struct array_list *parsed_story;
     chapter **story;
     /* STORY DATA VARs */
-    char ***parts;
-    char **chapters;
-    unsigned int *chapter_length;
     unsigned int speed_0, speed_1;
     unsigned int agility_speed;
-    unsigned int story_length;
-    unsigned int i, j;
+    unsigned int i;
 
     /* GET GAME SETTINGS DATA */
     speed_0 = get_json_data_int("text_speed_0", buffer); /* default text speed */
@@ -206,7 +194,7 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
     }
 
     free_story_data(story);
-    int res = json_object_put(parsed_json); /* if res == 1 mean that it's a success */
+    json_object_put(parsed_json); /* if res == 1 mean that it's a success */
 }
 
 char *ask_new_name(int y_max, int x_max, size_t max_size, char *buffer)

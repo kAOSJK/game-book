@@ -1,4 +1,3 @@
-#include <string.h>
 #include "lib.h"
 
 WINDOW *create_newwin(int height, int width, int starty, int startx)
@@ -16,7 +15,6 @@ WINDOW *create_window_var(int y_max, int x_max, int position)
     WINDOW *local_win;
     unsigned int height = 3;
     unsigned int width = 13;
-    unsigned int i;
     unsigned int start_x;
 
     if (position == 0)
@@ -36,7 +34,6 @@ WINDOW *create_window_var(int y_max, int x_max, int position)
 
 void refresh_window_var(WINDOW *local_win, int value, char *title)
 {
-    unsigned int height = 3;
     unsigned int width = 13;
     unsigned int i;
 

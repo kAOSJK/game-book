@@ -1,6 +1,14 @@
 #ifndef hi
 #define hi
 
+#define _DEFAULT_SOURCE
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <time.h>
+
 #include <json.h>
 
 #ifdef __linux__

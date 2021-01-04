@@ -1,4 +1,3 @@
-#include <string.h>
 #include "lib.h"
 
 #define GAME_DATA_PATH ("data/data.json")
@@ -187,9 +186,10 @@ int set_json_object_int(char *key, const int new_value, char *buffer)
 
 char *get_json_object_string(const char *key, const char *buffer)
 {
-	char *str = NULL;
 	struct json_object *parsed_json = NULL;
 	struct json_object *obj = NULL;
+	char *str = NULL;
+	int ret;
 
 	if (key == NULL)
 	{
@@ -211,7 +211,7 @@ char *get_json_object_string(const char *key, const char *buffer)
 		return NULL;
 	}
 
-	int ret = json_object_object_get_ex(parsed_json, key, &obj);
+	ret = json_object_object_get_ex(parsed_json, key, &obj);
 
 	if (obj == NULL || ret == 0)
 	{

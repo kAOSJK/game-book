@@ -1,9 +1,3 @@
-#define _DEFAULT_SOURCE
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
 #include "lib.h"
 
 #define DRAW_HEIGHT (9)

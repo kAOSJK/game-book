@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
 #include "lib.h"
 
 #define CREDITS_WAIT_TIME (1000000) /* real is 2500000 */
@@ -158,7 +153,7 @@ int add_agility_value(const int add_value, char *buffer)
     int new_agility = get_json_data_int("agility", buffer) + add_value;
     int res;
 
-    set_json_object_int("agility", new_agility, buffer);
+    res = set_json_object_int("agility", new_agility, buffer);
 
     return res;
 }
@@ -492,21 +487,20 @@ void print_credits(int y_max, int x_max, char *language)
     char *draw_2_1 = NULL;
     char *draw_2_2 = NULL;
     /* SIZE VARs */
-    int height = y_max / 3;
+    int height = y_max / 3 + 1;
     int width = x_max / 4;
     int padding_right = 7;
     int y_pos = 0; /* mid is: y_max / 2 - ((height) / 2) */
     int x_pos = x_max / 3 - padding_right - 12;
-    int c; /* represent the current readed char in the file */
     bool found_drawings = false;
 
     /* CREDITS WINDOW CREATION */
     win = create_newwin(height, width, y_pos, x_pos);
-    mvwprintw(win, 1, 3, "Director: Bertrand Eliot");
-    mvwprintw(win, 3, 3, "Designer: Bertrand Eliot");
-    mvwprintw(win, 4, 3, "Designer: Jourdan Lucas");
-    mvwprintw(win, 5, 3, "Designer: Mollier Mathis");
-    mvwprintw(win, 7, 3, "Developer: Covarel Edgar");
+    mvwprintw(win, 2, 3, "Director: Bertrand Eliot");
+    mvwprintw(win, 4, 3, "Designer: Bertrand Eliot");
+    mvwprintw(win, 5, 3, "Designer: Jourdan Lucas");
+    mvwprintw(win, 6, 3, "Designer: Mollier Mathis");
+    mvwprintw(win, 8, 3, "Developer: Covarel Edgar");
     wrefresh(win);
 
     /* DRAW WINDOW CREATION */
@@ -646,18 +640,16 @@ int reload_credits_win(WINDOW *win, int y_pos, int x_pos)
 
     /* MOVE THE WIN */
     move_res = mvwin(win, y_pos, x_pos);
+
+    /* RELOAD BOX */
     box(win, 0, 0);
 
-    /* TODO: ASCII ART CREDITS
-    Tobias Benjamin Koehler (lion_3_0 & lion_3_1)
-
-    */
     /* WRITING CREDITS CONTENT */
-    mvwprintw(win, 1, 3, "Director: Bertrand Eliot");
-    mvwprintw(win, 3, 3, "Designer: Bertrand Eliot");
-    mvwprintw(win, 4, 3, "Designer: Jourdan Lucas");
-    mvwprintw(win, 5, 3, "Designer: Mollier Mathis");
-    mvwprintw(win, 7, 3, "Developer: Covarel Edgar");
+    mvwprintw(win, 2, 3, "Director: Bertrand Eliot");
+    mvwprintw(win, 4, 3, "Designer: Bertrand Eliot");
+    mvwprintw(win, 5, 3, "Designer: Jourdan Lucas");
+    mvwprintw(win, 6, 3, "Designer: Mollier Mathis");
+    mvwprintw(win, 8, 3, "Developer: Covarel Edgar");
     wrefresh(win);
 
     return move_res;

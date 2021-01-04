@@ -4,9 +4,9 @@ RM = rm -rf
 
 JSON_C_DIR = ./json-c
 
-CFLAGS += -g3 -I$(JSON_C_DIR)/ -I$(JSON_C_DIR)-build/
+CFLAGS += -g3 -Wno-variadic-macros -Wno-unused-function -Wall -std=c89 -pedantic -I$(JSON_C_DIR)/ -I$(JSON_C_DIR)-build/
 LDFLAGS += -L$(JSON_C_DIR)-build -ljson-c -lncurses
-LD_LIBRARY_PATH=./json-c-build/:$LD_LIBRARY_PATH #in case of it doens't find the freshly created lib
+LD_LIBRARY_PATH=./json-c-build/:$LD_LIBRARY_PATH #in case of it doens't find the new created lib
 
 DEBUG = --tool=memcheck --leak-check=yes --show-reachable=yes --track-origins=yes --log-file="./output/valgrind-$(date +"%d-%m-%Y")"
 

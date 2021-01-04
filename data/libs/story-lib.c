@@ -1,9 +1,3 @@
-#define _DEFAULT_SOURCE
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
 #include "lib.h"
 
 #define CHAR_SEPARATOR "$"
@@ -11,7 +5,6 @@
 void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
 {
     /* WINDOWS VARs */
-    FILE *fp;
     WINDOW *topwin;
     WINDOW *win;
     WINDOW *bottomwin;
