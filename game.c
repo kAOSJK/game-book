@@ -35,17 +35,13 @@ int main()
     cbreak();
     curs_set(0);
 
-    /*
-    printw("%s\n", language);
-    refresh();
-    getchar();*/
-
-    play_menu(y_max, x_max, language); /* play the menu */
-
-    endwin(); /* end ncurses */
+    /* PLAY THE MENU */
+    play_menu(y_max, x_max, language);
 
     free(buffer);
     buffer = NULL;
+
+    endwin(); /* end ncurses */
 
     return 0;
 }
@@ -164,6 +160,8 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name,
     struct array_list *parsed_story;
     chapter **story;
     /* STORY DATA VARs */
+    unsigned int saved_chapter_index;
+    unsigned int story_length;
     unsigned int speed_0, speed_1;
     unsigned int agility_speed;
     unsigned int i;
@@ -182,28 +180,46 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name,
     /* GET GAME DATA */
     parsed_json = json_tokener_parse(buffer);
 
-    printw("language is %s, picking right story language right after...", language);
-    refresh();
-    getchar();
-
     /* GET GAME STORY DATA */
     if (strcmp(language, "english") == 0)
         parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
     else if (strcmp(language, "french") == 0)
         parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
+    else /* load default language game story data */
+        parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
 
     /* STORE DATA */
     story = get_story_data(parsed_story, buffer);
 
+    /* GET STORY CHAPTERS LENGTH */
+    for (i = 0; story[i]; i++)
+        story_length++;
+
     for (i = 0; story[i]; i++)
     {
+        /* TODO: load index chapter here */
+        saved_chapter_index = get_json_data_int("chapter_index", usr_buffer);
+        while (saved_chapter_index > i)
+            i++;
+
+        if (i == story_length)
+            break;
+
+        /* DISPLAY THE TITLE */
         display_title(y_max, x_max, parsed_story, i);
 
-        begin_chapter(y_max, x_max, speed_0, speed_1, agility_speed, story[i], i, parsed_story, name, buffer, usr_buffer);
+        /* BEGIN THE CHAPTER */
+        begin_chapter(y_max, x_max, speed_0, speed_1, agility_speed, language, story[i], i, parsed_story, name, buffer, usr_buffer);
     }
 
     free_story_data(story);
     json_object_put(parsed_json); /* if res == 1 mean that it's a success */
+
+    /* RESET SAVED CHAPTER INDEX */
+    reset_save_chapter_index(usr_buffer);
+
+    /* PRINT CREDITS OF THE GAME AND GO BACK TO THE MENU */
+    print_credits(y_max, x_max, language);
 }
 
 char *ask_new_name(int y_max, int x_max, size_t max_size, char *language, char *buffer)
@@ -327,7 +343,7 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
             }
             score++;
         }
-        /* means that it's a failure */
+        /* MEAN THAT IT'S A FAILURE */
         else
         {
             while (1)

@@ -208,6 +208,25 @@ int add_third_choice_value(const int add_value, char *buffer)
     return res;
 }
 
+int increment_save_chapter_index(char *buffer)
+{
+    int new_save_chapter_index = get_json_data_int("chapter_index", buffer) + 1;
+    int res;
+
+    res = set_json_object_int("chapter_index", new_save_chapter_index, buffer);
+
+    return res;
+}
+
+int reset_save_chapter_index(char *buffer)
+{
+    int res;
+
+    res = set_json_object_int("chapter_index", 0, buffer);
+
+    return res;
+}
+
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index)
 {
     WINDOW *win;

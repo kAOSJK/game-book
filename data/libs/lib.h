@@ -67,10 +67,10 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer);
 bool agility(int y_max, int x_max, int size, int speed);
 
 /* story-lib.c */
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char *language, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name);
 char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer);
-char *get_part_date(part *dpart);
+char *get_part_date(part *dpart, char *language);
 
 /* game-lib.c */
 char **sentence_separator(char *str, char *separator);
@@ -85,6 +85,8 @@ int add_trust_value(const int add_value, char *buffer);
 int add_first_choice_value(const int add_value, char *buffer);
 int add_second_choice_value(const int add_value, char *buffer);
 int add_third_choice_value(const int add_value, char *buffer);
+int increment_save_chapter_index(char *buffer);
+int reset_save_chapter_index(char *buffer);
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index);
 void print_credits(int y_max, int x_max, char *language);
 int reload_credits_win(WINDOW *win, int y_pos, int x_pos);

@@ -2,7 +2,7 @@
 
 #define CHAR_SEPARATOR "$"
 
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char *language, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
 {
     /* WINDOWS VARs */
     WINDOW *topwin;
@@ -24,9 +24,10 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
     /* UPGRADE VARs */
     char *skill_type = NULL;
     int add_value;
-    /* OTHERS VARs */
+    /* DATE VARs */
     char *new_date = NULL;
     char *date = NULL;
+    /* OTHERS VARs */
     unsigned int i;
 
     /* CREATE A WINDOW FOR OUR INPUT */
@@ -48,7 +49,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
 
     /* TODO: CHANGE ORDER OF WRITING DATE DEPENDING ON THE CHOOSEN LANGUAGE */
     /* GET AND WRITE DATE */
-    date = get_part_date(current_part);
+    date = get_part_date(current_part, language);
     if (date != NULL)
     {
         for (i = 0; date[i]; i++)
@@ -90,7 +91,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
         /* WRITE DATE */
         if (current_part->date != NULL)
         {
-            new_date = get_part_date(current_part);
+            new_date = get_part_date(current_part, language);
 
             /* WRITE IT IF ITS NEW */
             if (strcmp(date, new_date) != 0)
@@ -98,7 +99,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
                 free(date);
                 date = NULL;
 
-                date = get_part_date(current_part);
+                date = get_part_date(current_part, language);
                 for (i = 0; date[i]; i++)
                 {
                     mvwprintw(topwin, top_height / 2, (((width / 3) / 2) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
@@ -224,6 +225,8 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
 
         text = sentence_separator(current_part->text, CHAR_SEPARATOR);
     }
+
+    increment_save_chapter_index(usr_buffer);
 
     free(title);
     title = NULL;
@@ -431,7 +434,7 @@ char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer)
     return answer;
 }
 
-char *get_part_date(part *dpart)
+char *get_part_date(part *dpart, char *language)
 {
     char *date = NULL;
     char *day = NULL;
@@ -455,9 +458,37 @@ char *get_part_date(part *dpart)
     /* PUT ALL DATE DATA TO DATE CHAR* */
     date = malloc(sizeof(char) * (strlen(day) + strlen(month) + strlen(year)) + 1 + 1 + 1);
 
-    strcpy(date, day);
-    strcat(date, " ");
-    strcat(date, month);
+    if (strcmp(language, "english") == 0)
+    {
+        strcpy(date, day);
+        strcat(date, " ");
+        strcat(date, month);
+    }
+    else if (strcmp(language, "french") == 0)
+    {
+        strcpy(date, day);
+        strcat(date, " ");
+        strcat(date, month);
+    }
+    else
+    {
+        /* FREEs */
+        free(day);
+        day = NULL;
+
+        free(month);
+        month = NULL;
+
+        free(year);
+        year = NULL;
+
+        free(date);
+        date = NULL;
+
+        fprintf(stderr, "error: unknown language\n");
+        return NULL;
+    }
+
     strcat(date, " ");
     strcat(date, year);
 

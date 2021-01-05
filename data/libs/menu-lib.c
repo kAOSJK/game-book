@@ -138,8 +138,6 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     int i;
     int highlight = 0;
 
-    /* GET LANGUAGE */
-    /* TODO: languages in each different language */
     if (strcmp(language, "english") == 0)
         menu_key = strdup("languages");
     else if (strcmp(language, "french") == 0)
