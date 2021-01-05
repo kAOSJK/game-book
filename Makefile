@@ -9,8 +9,8 @@ LDFLAGS += -L$(JSON_C_DIR)-build -ljson-c -lncurses
 valgrind: build_valgrind.sh debug
 	bash ./build_valgrind.sh
 
-debug: json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o
-	$(CC) $(CFLAGS) -o$@ $^ game.c ${LDFLAGS} && make clear
+debug: json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o game.o
+	$(CC) $(CFLAGS) -o$@ $^ ${LDFLAGS} && make clear
 
 ubuntu-game: json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o game.o
 	$(CC) $(CFLAGS) -o$@_sample $^ ${LDFLAGS} && make clear
