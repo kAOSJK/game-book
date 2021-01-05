@@ -29,8 +29,6 @@
         {
           "key": "flash2",
           "text": "Hello mate ?",
-          /* TODO: gérer le cas où le skill passe en négatif
-          "upgrade": { "skill_type": "mental", "add_value": -2 },*/
           "choices": [
             { "text": "courrir", "next_key": "flash3" },
             { "text": "quittez", "next_key": "flash3" },
