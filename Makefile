@@ -16,7 +16,7 @@ ubuntu-game: json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-l
 	$(CC) $(CFLAGS) -o$@_sample $^ ${LDFLAGS} && make clear
 
 game: json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o game.o
-	$(CC) $(CFLAGS) -o$@_sample $^ -lncurses -ljson-c -static -static-libgcc && make clear
+	$(CC) $(CFLAGS) -o$@_sample $^ ${LDFLAGS} -static -lpthread -static-libgcc && make clear
 
 menu-lib.o: data/libs/menu-lib.c
 	$(CC) $(CFLAGS) -o$@ -c $^ ${LDFLAGS}
