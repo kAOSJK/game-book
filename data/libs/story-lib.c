@@ -44,7 +44,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
         text = sentence_separator(current_part->text, CHAR_SEPARATOR);
 
     for (i = 1; i <= 5; i++)
-        mvwprintw(topwin, i, width / 3, "%c", '|');
+        mvwaddch(topwin, i, width / 3, ACS_VLINE);
 
     /* TODO: CHANGE ORDER OF WRITING DATE DEPENDING ON THE CHOOSEN LANGUAGE */
     /* GET AND WRITE DATE */
@@ -77,9 +77,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
     while (text != NULL)
     {
         for (i = 1; i <= 5; i++)
-        {
-            mvwprintw(topwin, i, width / 3, "%c", '|');
-        }
+            mvwaddch(topwin, i, width / 3, ACS_VLINE);
 
         /* WRITE TITLE */
         if (title != NULL)
