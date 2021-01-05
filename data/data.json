@@ -7,9 +7,9 @@
   "text_speed_1": 1000,
   "agility_speed": 100000,
   "show_debugger": false,
-  "default_language": "english",
-  "languages": ["english", "french", "javanese"],
-  "languages_fr": ["anglais", "francais", "javanais"],
+  "default_language": "English",
+  "languages": ["English", "French", "Javanese"],
+  "languages_fr": ["Anglais", "Francais", "Javanais"],
   "languages_jv": ["Basa inggris", "Prancis", "Wong jawa"],
   "entry_keys": ["flash1", "quit"],
   "story": [
@@ -17,7 +17,7 @@
       "introduction": [
         {
           "key": "flash1",
-          "text": "Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ? Hello what you want to do ? Hello what you want to do he?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ?",
+          "text": "it...$always...$i's's..'.'.'.'.'.'.'.'.'.'......''$...$Hello what you... wan't to do ?$Hello what you wan't to do ? Hello wha't you want to d'o ? Hello what you want to ? Hello what you want to do he?$Hello what you want to do ?$Hello what you want to do ?$Hello what you wan't to do ?$Hello what you wan't to do ? Hello what you want to do ?",
           "upgrade": { "skill_type": "first_choice", "add_value": 11 },
           "date": {
             "day": 18,
@@ -28,10 +28,10 @@
         },
         {
           "key": "flash2",
-          "text": "Hello mate ?",
+          "text": "He'll'o ma'te ?...",
           "choices": [
-            { "text": "courrir", "next_key": "flash3" },
-            { "text": "quittez", "next_key": "flash3" },
+            { "text": "courr'ir", "next_key": "flash3" },
+            { "text": "quitt'ez", "next_key": "flash3" },
             {
               "text": "dance",
               "needed_skill": "agility",
@@ -42,7 +42,7 @@
         },
         {
           "key": "flash3",
-          "text": "Bye mate$testing here$yup & is here !",
+          "text": "Bye... mat'e$te'sting here$yu'p & is her'e !...",
           "date": {
             "day": 20,
             "month": "janvier",
@@ -59,27 +59,27 @@
         },
         {
           "key": "won_agi0",
-          "text": "You won freedom",
+          "text": "You won fr'eedom....",
           "next_key": ""
         },
         {
           "key": "lost_agi0",
-          "text": "You are dead cuz you lose the test.",
+          "text": "You are dead cuz you' lose t'he t'es't....",
           "next_key": ""
         },
         {
           "key": "quit",
-          "text": "Quitte la partie",
+          "text": "Qui'tte la pa'rtie",
           "next_key": ""
         },
         {
           "key": "run",
-          "text": "Vous courrez tres vite!",
+          "text": "Vou's courrez' tres v'ite!",
           "next_key": ""
         },
         {
           "key": "dance",
-          "text": "Vous dansez bien!",
+          "text": "Vou's danse'z bien!",
           "next_key": ""
         }
       ]
@@ -88,7 +88,7 @@
       "part 1": [
         {
           "key": "flash7",
-          "text": "Hello what you want to do ?",
+          "text": "Hello' what you ...wan't to d'o ?",
           "date": {
             "day": 31,
             "month": "janvier",
@@ -101,7 +101,7 @@
         },
         {
           "key": "run",
-          "text": "Vous courrez",
+          "text": "Vou's courre'z",
           "date": {
             "day": 23,
             "month": "december",

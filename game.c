@@ -4,7 +4,7 @@
 #define DEFAULT_TEXT_SPEED_1 (10000)
 #define DEFAULT_AGILITY_SPEED (10000)
 #define DEFAULT_MAX_NAME_SIZE (10)
-#define DEFAULT_LANGUAGE ("english")
+#define DEFAULT_LANGUAGE ("English")
 
 void play_menu(int, int, char *);
 void play_game(int, int, char *, char *, char *, char *);
@@ -181,9 +181,9 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name,
     parsed_json = json_tokener_parse(buffer);
 
     /* GET GAME STORY DATA */
-    if (strcmp(language, "english") == 0)
+    if (strcmp(language, "English") == 0)
         parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
-    else if (strcmp(language, "french") == 0)
+    else if (strcmp(language, "French") == 0)
         parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
     else /* load default language game story data */
         parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
@@ -197,7 +197,6 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name,
 
     for (i = 0; story[i]; i++)
     {
-        /* TODO: load index chapter here */
         saved_chapter_index = get_json_data_int("chapter_index", usr_buffer);
         while (saved_chapter_index > i)
             i++;
@@ -243,9 +242,9 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *language, char *
     if (!wait_time)
         wait_time = DEFAULT_TEXT_SPEED_0;
 
-    if (strcmp(language, "english") == 0)
+    if (strcmp(language, "English") == 0)
         ask = strdup("Enter your name:");
-    else if (strcmp(language, "french") == 0)
+    else if (strcmp(language, "French") == 0)
         ask = strdup("Entrer votre nom:");
 
     for (i = 0; ask[i]; i++)
@@ -333,9 +332,9 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
             while (1)
             {
                 box(win, 0, 0);
-                if (strcmp(language, "english") == 0)
+                if (strcmp(language, "English") == 0)
                     mvwprintw(win, 1, 2, "You have passed the %s agility test", int_to_word(i));
-                else if (strcmp(language, "french") == 0)
+                else if (strcmp(language, "French") == 0)
                     mvwprintw(win, 1, 2, "Vous avez reussi le %s test d'agilite", int_to_word_fr(i));
 
                 if (wgetch(win) == 10)
@@ -349,9 +348,9 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
             while (1)
             {
                 box(win, 0, 0);
-                if (strcmp(language, "english") == 0)
+                if (strcmp(language, "English") == 0)
                     mvwprintw(win, 1, 2, "You failed the %s agility test", int_to_word(i));
-                else if (strcmp(language, "french") == 0)
+                else if (strcmp(language, "French") == 0)
                     mvwprintw(win, 1, 2, "Vous avez echoue au %s test d'agilite", int_to_word_fr(i));
 
                 if (wgetch(win) == 10)
@@ -367,16 +366,16 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
 
     if (score >= 5)
     {
-        if (strcmp(language, "english") == 0)
+        if (strcmp(language, "English") == 0)
             mvwprintw(win, 1, 2, "Good job ! your score is: %d out of 10", score);
-        else if (strcmp(language, "french") == 0)
+        else if (strcmp(language, "French") == 0)
             mvwprintw(win, 1, 2, "Bien joue ! votre score est: %d sur 10", score);
     }
     else
     {
-        if (strcmp(language, "english") == 0)
+        if (strcmp(language, "English") == 0)
             mvwprintw(win, 1, 2, "Your score is: %d out of 10", score);
-        else if (strcmp(language, "french") == 0)
+        else if (strcmp(language, "French") == 0)
             mvwprintw(win, 1, 2, "Votre score est: %d sur 10", score);
     }
 

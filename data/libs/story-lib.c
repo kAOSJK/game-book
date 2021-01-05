@@ -47,7 +47,6 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
     for (i = 1; i <= top_height - 2; i++)
         mvwaddch(topwin, i, width / 3, ACS_VLINE);
 
-    /* TODO: CHANGE ORDER OF WRITING DATE DEPENDING ON THE CHOOSEN LANGUAGE */
     /* GET AND WRITE DATE */
     date = get_part_date(current_part, language);
     if (date != NULL)
@@ -458,13 +457,13 @@ char *get_part_date(part *dpart, char *language)
     /* PUT ALL DATE DATA TO DATE CHAR* */
     date = malloc(sizeof(char) * (strlen(day) + strlen(month) + strlen(year)) + 1 + 1 + 1);
 
-    if (strcmp(language, "english") == 0)
+    if (strcmp(language, "English") == 0)
     {
         strcpy(date, day);
         strcat(date, " ");
         strcat(date, month);
     }
-    else if (strcmp(language, "french") == 0)
+    else if (strcmp(language, "French") == 0)
     {
         strcpy(date, day);
         strcat(date, " ");

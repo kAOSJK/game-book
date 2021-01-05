@@ -23,11 +23,11 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
     int highlight = 0;
 
     /* GET LANGUAGE */
-    if (strcmp(language, "english") == 0)
+    if (strcmp(language, "English") == 0)
         menu_key = strdup("menu");
-    else if (strcmp(language, "french") == 0)
+    else if (strcmp(language, "French") == 0)
         menu_key = strdup("menu_fr");
-    else if (strcmp(language, "javanese") == 0)
+    else if (strcmp(language, "Javanese") == 0)
         menu_key = strdup("menu_jv");
     else
     {
@@ -125,10 +125,15 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
 char *display_languages(int y_max, int x_max, char *language, char *buffer)
 {
     char *menu_key = NULL;
-    /* SCREEN VARs */
+    /* WINDOWS VARs */
     WINDOW *menuwin;
+    WINDOW *drawin;
+    WINDOW *drawin_2;
     int height = 13;
     int width = 24;
+    /* DRAWINGS VARs */
+    char *draw_0 = NULL;
+    char *draw_1 = NULL;
     /* DATA VARs */
     char **choices = NULL;
     char **real_choices = NULL;
@@ -138,17 +143,34 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     int i;
     int highlight = 0;
 
-    if (strcmp(language, "english") == 0)
+    if (strcmp(language, "English") == 0)
         menu_key = strdup("languages");
-    else if (strcmp(language, "french") == 0)
+    else if (strcmp(language, "French") == 0)
         menu_key = strdup("languages_fr");
-    else if (strcmp(language, "javanese") == 0)
+    else if (strcmp(language, "Javanese") == 0)
         menu_key = strdup("languages_jv");
     else
     {
         fprintf(stderr, "error: unknown language\n");
         return NULL;
     }
+
+    /* CREATE DRAWINGS WINDOWS */
+    drawin = newwin(DRAW_HEIGHT, DRAW_WIDTH, y_max / 2 - (DRAW_HEIGHT / 2), x_max / 2 - (DRAW_WIDTH / 2) - DRAW_WIDTH + 5);
+    wrefresh(drawin);
+
+    drawin_2 = newwin(DRAW_HEIGHT, DRAW_WIDTH, y_max / 2 - (DRAW_HEIGHT / 2), x_max / 2 - (DRAW_WIDTH / 2) + DRAW_WIDTH - 5);
+    wrefresh(drawin_2);
+
+    /* OPEN DRAWINGS FILES */
+    draw_0 = open_file("data/lion_3_0", "r");
+    draw_1 = open_file("data/lion_3_1", "r");
+
+    wprintw(drawin, draw_0);
+    wrefresh(drawin);
+
+    wprintw(drawin_2, draw_1);
+    wrefresh(drawin_2);
 
     /* CREATE MENU WINDOW */
     getmaxyx(stdscr, y_max, x_max);
@@ -220,6 +242,12 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
 
     free(menu_key);
     menu_key = NULL;
+
+    free(draw_0);
+    draw_0 = NULL;
+
+    free(draw_1);
+    draw_1 = NULL;
 
     destroy_win(menuwin);
 
