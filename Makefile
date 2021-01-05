@@ -4,7 +4,11 @@ RM = rm -rf
 CC = gcc
 CFLAGS = -Wno-variadic-macros -Wno-unused-function -Wall -std=c89 -pedantic
 CFLAGS += -g3 -I$(JSON_C_DIR)/ -I$(JSON_C_DIR)-build/
-LDFLAGS += -L$(JSON_C_DIR)-build -ljson-c -lncurses
+LDFLAGS = -L$(JSON_C_DIR)-build -ljson-c -lncurses
+
+ifeq ($(UNAME), Msys)
+	LDFLAGS += -static
+endif
 
 valgrind: build_valgrind.sh debug
 	bash ./build_valgrind.sh
