@@ -18,8 +18,7 @@
         {
           "key": "flash1",
           "text": "Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ? Hello what you want to do ? Hello what you want to do he?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ?$Hello what you want to do ? Hello what you want to do ?",
-          /*
-          "upgrade": { "skill_type": "agility", "add_value": 1 },*/
+          "upgrade": { "skill_type": "first_choice", "add_value": 11 },
           "date": {
             "day": 18,
             "month": "janvier",

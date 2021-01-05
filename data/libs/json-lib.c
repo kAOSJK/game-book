@@ -282,6 +282,9 @@ void create_player_json_data()
 	json_object_object_add(nobj, "agility", json_object_new_int(0));
 	json_object_object_add(nobj, "mental", json_object_new_int(0));
 	json_object_object_add(nobj, "trust", json_object_new_int(0));
+	json_object_object_add(nobj, "first_choice", json_object_new_int(0));
+	json_object_object_add(nobj, "second_choice", json_object_new_int(0));
+	json_object_object_add(nobj, "third_choice", json_object_new_int(0));
 
 	json_object_to_file(USER_DATA_PATH, nobj); /* save the file */
 

@@ -43,7 +43,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
     if (current_part != NULL)
         text = sentence_separator(current_part->text, CHAR_SEPARATOR);
 
-    for (i = 1; i <= 5; i++)
+    for (i = 1; i <= top_height - 2; i++)
         mvwaddch(topwin, i, width / 3, ACS_VLINE);
 
     /* TODO: CHANGE ORDER OF WRITING DATE DEPENDING ON THE CHOOSEN LANGUAGE */
@@ -76,7 +76,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
     /* WRITE THE CHAPTER */
     while (text != NULL)
     {
-        for (i = 1; i <= 5; i++)
+        for (i = 1; i <= top_height - 2; i++)
             mvwaddch(topwin, i, width / 3, ACS_VLINE);
 
         /* WRITE TITLE */
@@ -136,6 +136,12 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
             else if (strcmp(skill_type, "mental") == 0)
                 add_mental_value(add_value, usr_buffer);
             else if (strcmp(skill_type, "trust") == 0)
+                add_trust_value(add_value, usr_buffer);
+            else if (strcmp(skill_type, "first_choice") == 0)
+                add_trust_value(add_value, usr_buffer);
+            else if (strcmp(skill_type, "second_choice") == 0)
+                add_trust_value(add_value, usr_buffer);
+            else if (strcmp(skill_type, "third_choice") == 0)
                 add_trust_value(add_value, usr_buffer);
 
             free(skill_type);

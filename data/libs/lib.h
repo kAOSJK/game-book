@@ -82,6 +82,9 @@ void destroy_windows_vars(WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwi
 int add_agility_value(const int add_value, char *buffer);
 int add_mental_value(const int add_value, char *buffer);
 int add_trust_value(const int add_value, char *buffer);
+int add_first_choice_value(const int add_value, char *buffer);
+int add_second_choice_value(const int add_value, char *buffer);
+int add_third_choice_value(const int add_value, char *buffer);
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index);
 void print_credits(int y_max, int x_max, char *language);
 int reload_credits_win(WINDOW *win, int y_pos, int x_pos);

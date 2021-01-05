@@ -138,11 +138,6 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     int i;
     int highlight = 0;
 
-    /*
-    printw("current languages language is: %s", language);
-    refresh();
-    getchar();*/
-
     /* GET LANGUAGE */
     /* TODO: languages in each different language */
     if (strcmp(language, "english") == 0)

@@ -178,6 +178,36 @@ int add_trust_value(const int add_value, char *buffer)
     return res;
 }
 
+int add_first_choice_value(const int add_value, char *buffer)
+{
+    int new_first_choice = get_json_data_int("first_choice", buffer) + add_value;
+    int res;
+
+    res = set_json_object_int("first_choice", new_first_choice, buffer);
+
+    return res;
+}
+
+int add_second_choice_value(const int add_value, char *buffer)
+{
+    int new_second_choice = get_json_data_int("second_choice", buffer) + add_value;
+    int res;
+
+    res = set_json_object_int("second_choice", new_second_choice, buffer);
+
+    return res;
+}
+
+int add_third_choice_value(const int add_value, char *buffer)
+{
+    int new_third_choice = get_json_data_int("third_choice", buffer) + add_value;
+    int res;
+
+    res = set_json_object_int("third_choice", new_third_choice, buffer);
+
+    return res;
+}
+
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index)
 {
     WINDOW *win;
