@@ -9,12 +9,12 @@
 #include <unistd.h>
 #include <time.h>
 
-#include <json.h>
-
 #ifdef __linux__
 #include <ncurses.h>
+#include <json.h>
 #elif _WIN32
 #include <ncurses/ncurses.h>
+#include <json.h> /* #include <json-c/json.h> */
 #endif
 
 #define IS_LOWER_CASE(c) ((c >= 'a' && c <= 'z'))
