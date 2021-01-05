@@ -11,8 +11,11 @@ valgrind: build_valgrind.sh debug
 debug: json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o
 	$(CC) $(CFLAGS) -odebug json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o game.c ${LDFLAGS} && make clear
 
-game: game.o json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o
+ubuntu-game: game.o json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o
 	$(CC) $(CFLAGS) -ogame_sample json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o game.o ${LDFLAGS} && make clear
+
+game: game.o json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o
+	$(CC) $(CFLAGS) -ogame_sample json-lib.o window-lib.o menu-lib.o agility-lib.o story-lib.o game-lib.o game.o -lncurses -ljson-c -static -static-libgcc && make clear
 
 menu-lib.o: data/libs/menu-lib.c
 	$(CC) $(CFLAGS) -omenu-lib.o -c data/libs/menu-lib.c ${LDFLAGS}
