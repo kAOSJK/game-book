@@ -7,9 +7,9 @@
 #define DEFAULT_LANGUAGE ("english")
 
 void play_menu(int, int, char *);
-void play_game(int, int, char *, char *, char *);
+void play_game(int, int, char *, char *, char *, char *);
 void play_agility_game(int, int, int, char *);
-char *ask_new_name(int, int, size_t, char *);
+char *ask_new_name(int, int, size_t, char *, char *);
 
 int main()
 {
@@ -98,7 +98,7 @@ void play_menu(int y_max, int x_max, char *language)
             free(name);
             name = NULL;
 
-            name = ask_new_name(y_max, x_max, max_name_size, buffer);
+            name = ask_new_name(y_max, x_max, max_name_size, language, buffer);
 
             set_json_object_string("name", name, usr_buffer);
 
@@ -109,7 +109,7 @@ void play_menu(int y_max, int x_max, char *language)
             usr_buffer = open_file("data/user.json", "r");
         }
 
-        play_game(y_max, x_max, buffer, usr_buffer, name);
+        play_game(y_max, x_max, buffer, usr_buffer, name, language);
     }
     else if (menu_answer == 1)
     {
@@ -157,7 +157,7 @@ void play_menu(int y_max, int x_max, char *language)
     language = NULL;
 }
 
-void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
+void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name, char *language)
 {
     /* STORY JSON VARs */
     struct json_object *parsed_json;
@@ -181,7 +181,16 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
 
     /* GET GAME DATA */
     parsed_json = json_tokener_parse(buffer);
-    parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
+
+    printw("language is %s, picking right story language right after...", language);
+    refresh();
+    getchar();
+
+    /* GET GAME STORY DATA */
+    if (strcmp(language, "english") == 0)
+        parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
+    else if (strcmp(language, "french") == 0)
+        parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
 
     /* STORE DATA */
     story = get_story_data(parsed_story, buffer);
@@ -197,7 +206,7 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name)
     json_object_put(parsed_json); /* if res == 1 mean that it's a success */
 }
 
-char *ask_new_name(int y_max, int x_max, size_t max_size, char *buffer)
+char *ask_new_name(int y_max, int x_max, size_t max_size, char *language, char *buffer)
 {
     WINDOW *win;
     char *name = NULL; /* final user name */
@@ -217,7 +226,11 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *buffer)
     wait_time = get_json_data_int("text_speed_0", buffer); /* default text speed */
     if (!wait_time)
         wait_time = DEFAULT_TEXT_SPEED_0;
-    ask = strdup("Enter your name:");
+
+    if (strcmp(language, "english") == 0)
+        ask = strdup("Enter your name:");
+    else if (strcmp(language, "french") == 0)
+        ask = strdup("Entrer votre nom:");
 
     for (i = 0; ask[i]; i++)
     {
@@ -275,7 +288,7 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *buffer)
         free(name);
         name = NULL;
 
-        name = ask_new_name(y_max, x_max, max_size, buffer);
+        name = ask_new_name(y_max, x_max, max_size, language, buffer);
     }
 
     destroy_win(win);
@@ -335,7 +348,22 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
     }
 
     box(win, 0, 0);
-    mvwprintw(win, 1, 2, "Your score is : %d out of 10", score);
+
+    if (score >= 5)
+    {
+        if (strcmp(language, "english") == 0)
+            mvwprintw(win, 1, 2, "Good job ! your score is: %d out of 10", score);
+        else if (strcmp(language, "french") == 0)
+            mvwprintw(win, 1, 2, "Bien joue ! votre score est: %d sur 10", score);
+    }
+    else
+    {
+        if (strcmp(language, "english") == 0)
+            mvwprintw(win, 1, 2, "Your score is: %d out of 10", score);
+        else if (strcmp(language, "french") == 0)
+            mvwprintw(win, 1, 2, "Votre score est: %d sur 10", score);
+    }
+
     while (1)
     {
         if (wgetch(win) == 10)
