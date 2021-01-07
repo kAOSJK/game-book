@@ -6,8 +6,34 @@ size_t get_json_options_length(char *key, char *buffer)
 	struct json_object *options;	 /* json object options */
 	size_t n_options;
 
+	if (key == NULL)
+	{
+		fprintf(stderr, "error: key argument is null\n");
+		return 0;
+	}
+
+	if (buffer == NULL)
+	{
+		fprintf(stderr, "error: buffer argument is null\n");
+		return 0;
+	}
+
 	parsed_json = json_tokener_parse(buffer);
+
+	if (parsed_json == NULL)
+	{
+		fprintf(stderr, "error: parsed_json is null\n");
+		return 0;
+	}
+
 	json_object_object_get_ex(parsed_json, key, &options);
+
+	if (options == NULL)
+	{
+		fprintf(stderr, "error: options is null\n");
+		json_object_put(parsed_json);
+		return 0;
+	}
 
 	n_options = json_object_array_length(options);
 
@@ -24,8 +50,34 @@ void get_json_array_data(char **data, char *key, char *buffer)
 	size_t n_options;
 	size_t i;
 
+	if (key == NULL)
+	{
+		fprintf(stderr, "error: key argument is null\n");
+		return;
+	}
+
+	if (buffer == NULL)
+	{
+		fprintf(stderr, "error: buffer argument is null\n");
+		return;
+	}
+
 	parsed_json = json_tokener_parse(buffer);
+
+	if (parsed_json == NULL)
+	{
+		fprintf(stderr, "error: parsed_json is null\n");
+		return;
+	}
+
 	json_object_object_get_ex(parsed_json, key, &options);
+
+	if (options == NULL)
+	{
+		fprintf(stderr, "error: options is null\n");
+		json_object_put(parsed_json);
+		return;
+	}
 
 	n_options = json_object_array_length(options);
 

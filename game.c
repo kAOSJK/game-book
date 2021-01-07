@@ -152,6 +152,14 @@ void play_game(int y_max, int x_max, char *buffer, char **usr_buffer_ptr, char *
     unsigned int speed_0, speed_1;
     unsigned int agility_speed;
     unsigned int i;
+    /* STORY LANGUAGES DATA VARs */
+    char **languages_code = NULL;
+    char **languages = NULL;
+    char *story_language = NULL;
+    char *code = NULL;
+    unsigned int languages_length = 0;
+    unsigned int languages_code_length = 0;
+    unsigned int index = 0;
     /* USER DATA VARs */
     char *usr_buffer = *usr_buffer_ptr;
 
@@ -160,21 +168,52 @@ void play_game(int y_max, int x_max, char *buffer, char **usr_buffer_ptr, char *
     if (!speed_0)
         speed_0 = DEFAULT_TEXT_SPEED_0;                  /* if speed_0 is NULL, load static default text speed 0 */
     speed_1 = get_json_data_int("text_speed_1", buffer); /* skipped text speed */
-    if (!speed_1)
+
+    if (!speed_1)                                               /* default skipped text speed */
         speed_1 = DEFAULT_TEXT_SPEED_1;                         /* if speed_1 is NULL, load static default text speed 1 */
     agility_speed = get_json_data_int("agility_speed", buffer); /* default agility speed */
+
     if (!agility_speed)
         agility_speed = DEFAULT_AGILITY_SPEED; /* if agility_speed is NULL, load static default agility speed 1 */
+
+    /* GET LANGUAGE MIN LENGTH, MALLOC IT, AND GET IT */
+    languages_code_length = get_json_options_length("languages_code", buffer);
+    languages_code = malloc(sizeof(char *) * languages_code_length);
+    get_json_array_data(languages_code, "languages_code", buffer);
+
+    /* GET LANGUAGE LENGTH, MALLOC IT, AND GET IT */
+    languages_length = get_json_options_length("languages", buffer);
+    languages = malloc(sizeof(char *) * languages_length);
+    get_json_array_data(languages, "languages", buffer);
+
+    /* GET THE RIGHT INDEX */
+    for (i = 0; i < languages_length; i++)
+    {
+        if (strcmp(languages[i], language) == 0)
+        {
+            index = i;
+            break;
+        }
+    }
 
     /* GET GAME DATA */
     parsed_json = json_tokener_parse(buffer);
 
+    /* GET RIGHT STORY LANGUAGE */
+    code = strdup(languages_code[index]);
+
+    story_language = strdup("story");
+    if (strcmp(code, "") != 0)
+    {
+        story_language = realloc(story_language, sizeof(char) * strlen(story_language) + strlen(code) + 1 + 1);
+        strcat(story_language, "_");
+        strcat(story_language, code);
+    }
+
     /* GET GAME STORY DATA */
-    if (strcmp(language, "English") == 0)
-        parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
-    else if (strcmp(language, "Francais") == 0) /* TODO: load story_fr here */
-        parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
-    else /* load default language game story data */
+    parsed_story = json_object_get_array(json_object_object_get(parsed_json, story_language));
+
+    if (parsed_story == NULL)
     {
         /* MESSAGE OF BAD CHOOSED LANGUAGE */
         clear();
@@ -182,14 +221,33 @@ void play_game(int y_max, int x_max, char *buffer, char **usr_buffer_ptr, char *
         refresh();
         getchar();
 
-        /* CLEAR */
+        /* FREE LANGUAGE */
+        free(story_language);
+        story_language = NULL;
+
+        /* LOAD DEFAULT LANGUAGE */
+        story_language = strdup("story");
+        if (strcmp(languages_code[0], "") != 0)
+        {
+            story_language = realloc(story_language, sizeof(char) * strlen(story_language) + strlen(languages_code[0]) + 1 + 1);
+            strcat(story_language, "_");
+            strcat(story_language, languages_code[0]);
+        }
+
+        parsed_story = json_object_get_array(json_object_object_get(parsed_json, story_language));
+
+        if (parsed_story == NULL)
+        {
+            clear();
+            printw("\nTranslation of the choosen default language is not finished, switching to static default language");
+            refresh();
+            getchar();
+
+            parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
+        }
+
         clear();
         refresh();
-
-        if (strcmp(DEFAULT_LANGUAGE, "English") == 0)
-            parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
-        else if (strcmp(DEFAULT_LANGUAGE, "Francais") == 0) /* TODO: load story_fr here */
-            parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
     }
 
     /* STORE DATA */
@@ -216,8 +274,34 @@ void play_game(int y_max, int x_max, char *buffer, char **usr_buffer_ptr, char *
         usr_buffer = *usr_buffer_ptr;
     }
 
+    /* FREE LANGUAGE STORY VARs */
+    for (i = 0; i < languages_code_length; i++)
+    {
+        free(languages_code[i]);
+        languages_code[i] = NULL;
+    }
+
+    free(languages_code);
+    languages_code = NULL;
+
+    for (i = 0; i < languages_length; i++)
+    {
+        free(languages[i]);
+        languages[i] = NULL;
+    }
+
+    free(languages);
+    languages = NULL;
+
+    free(code);
+    code = NULL;
+
+    free(story_language);
+    story_language = NULL;
+
+    /* FREE STORY VARs */
     free_story_data(story);
-    json_object_put(parsed_json); /* if res == 1 mean that it's a success */
+    json_object_put(parsed_json);
 
     /* RESET SAVED CHAPTER INDEX AND SKILLS */
     reset_save_chapter_index(usr_buffer_ptr);

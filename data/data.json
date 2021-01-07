@@ -1,15 +1,56 @@
 {
   "menu": ["Story", "Mini-game", "Language", "Credits", "Quit"],
   "menu_fr": ["Histoire", "Mini-jeu", "Langue", "Credits", "Quitter"],
-  "menu_jv": ["Sejarah", "Game cilik", "Basa", "Kridit", "Kanggo ninggalake"],
+  "menu_wj": ["Sejarah", "Game cilik", "Basa", "Kridit", "Kanggo ninggalake"],
+  "menu_rs": ["Plai", "Mino gamo", "Lnau", "Credita", "Quitta"],
   "max_name_size": 10,
   "text_speed_0": 10000,
-  "text_speed_1": 1000,
+  "text_speed_1": 100,
   "agility_speed": 100000,
   "show_debugger": false,
   "default_language": "English",
-  "languages": ["English", "Francais", "Wong jawa"],
+  "languages": ["English", "Francais", "Wong jawa", "Russian"],
+  "languages_code": ["", "fr", "wj", "rs"],
   "entry_keys": ["flash1", "quit"],
+  "story_fr": [
+    {
+      "test french": [
+        {
+          "key": "flash1",
+          "text": "it...$always...$i's's..'.'.'.'.'.'.'.'.'.'......''$...$Hello what you... wan't to do ?$Hello what you wan't to do ? Hello wha't you want to d'o ? Hello what you want to ? Hello what you want to do he?$Hello what you want to do ?$Hello what you want to do ?$Hello what you wan't to do ?$Hello what you wan't to do ? Hello what you want to do ?",
+          "upgrade": { "skill_type": "first_choice", "add_value": 11 },
+          "date": {
+            "day": 18,
+            "month": "janvier",
+            "year": 1980
+          },
+          "next_key": "flash2"
+        },
+        {
+          "key": "flash2",
+          "text": "test ici french",
+          "upgrade": { "skill_type": "first_choice", "add_value": 11 },
+          "date": {
+            "day": 20,
+            "month": "janvier",
+            "year": 1980
+          },
+          "next_key": "flash3"
+        },
+        {
+          "key": "flash3",
+          "text": "ok might be the end",
+          "upgrade": { "skill_type": "first_choice", "add_value": 11 },
+          "date": {
+            "day": 22,
+            "month": "janvier",
+            "year": 1980
+          },
+          "next_key": ""
+        }
+      ]
+    }
+  ],
   "story": [
     {
       "introduction": [
