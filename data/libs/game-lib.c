@@ -114,9 +114,9 @@ char *open_file(char *path, char *access_mode)
             fread(buffer, size, 1, fp);
             buffer[size] = '\0';
         }
-    }
 
-    fclose(fp);
+        fclose(fp);
+    }
 
     return buffer;
 }
@@ -148,9 +148,9 @@ void destroy_windows_vars(WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwi
     destroy_win(trustwin);
 }
 
-int add_agility_value(const int add_value, char *buffer)
+int add_agility_value(const int add_value, char **buffer)
 {
-    int new_agility = get_json_data_int("agility", buffer) + add_value;
+    int new_agility = get_json_data_int("agility", *buffer) + add_value;
     int res;
 
     res = set_json_object_int("agility", new_agility, buffer);
@@ -158,9 +158,9 @@ int add_agility_value(const int add_value, char *buffer)
     return res;
 }
 
-int add_mental_value(const int add_value, char *buffer)
+int add_mental_value(const int add_value, char **buffer)
 {
-    int new_mental = get_json_data_int("mental", buffer) + add_value;
+    int new_mental = get_json_data_int("mental", *buffer) + add_value;
     int res;
 
     res = set_json_object_int("mental", new_mental, buffer);
@@ -168,9 +168,9 @@ int add_mental_value(const int add_value, char *buffer)
     return res;
 }
 
-int add_trust_value(const int add_value, char *buffer)
+int add_trust_value(const int add_value, char **buffer)
 {
-    int new_trust = get_json_data_int("trust", buffer) + add_value;
+    int new_trust = get_json_data_int("trust", *buffer) + add_value;
     int res;
 
     res = set_json_object_int("trust", new_trust, buffer);
@@ -178,9 +178,9 @@ int add_trust_value(const int add_value, char *buffer)
     return res;
 }
 
-int add_first_choice_value(const int add_value, char *buffer)
+int add_first_choice_value(const int add_value, char **buffer)
 {
-    int new_first_choice = get_json_data_int("first_choice", buffer) + add_value;
+    int new_first_choice = get_json_data_int("first_choice", *buffer) + add_value;
     int res;
 
     res = set_json_object_int("first_choice", new_first_choice, buffer);
@@ -188,9 +188,9 @@ int add_first_choice_value(const int add_value, char *buffer)
     return res;
 }
 
-int add_second_choice_value(const int add_value, char *buffer)
+int add_second_choice_value(const int add_value, char **buffer)
 {
-    int new_second_choice = get_json_data_int("second_choice", buffer) + add_value;
+    int new_second_choice = get_json_data_int("second_choice", *buffer) + add_value;
     int res;
 
     res = set_json_object_int("second_choice", new_second_choice, buffer);
@@ -198,9 +198,9 @@ int add_second_choice_value(const int add_value, char *buffer)
     return res;
 }
 
-int add_third_choice_value(const int add_value, char *buffer)
+int add_third_choice_value(const int add_value, char **buffer)
 {
-    int new_third_choice = get_json_data_int("third_choice", buffer) + add_value;
+    int new_third_choice = get_json_data_int("third_choice", *buffer) + add_value;
     int res;
 
     res = set_json_object_int("third_choice", new_third_choice, buffer);
@@ -208,9 +208,9 @@ int add_third_choice_value(const int add_value, char *buffer)
     return res;
 }
 
-int increment_save_chapter_index(char *buffer)
+int increment_save_chapter_index(char **buffer)
 {
-    int new_save_chapter_index = get_json_data_int("chapter_index", buffer) + 1;
+    int new_save_chapter_index = get_json_data_int("chapter_index", *buffer) + 1;
     int res;
 
     res = set_json_object_int("chapter_index", new_save_chapter_index, buffer);
@@ -218,13 +218,23 @@ int increment_save_chapter_index(char *buffer)
     return res;
 }
 
-int reset_save_chapter_index(char *buffer)
+int reset_save_chapter_index(char **buffer)
 {
     int res;
 
     res = set_json_object_int("chapter_index", 0, buffer);
 
     return res;
+}
+
+void reset_skill_values(char **buffer)
+{
+    set_json_object_int("agility", 0, buffer);
+    set_json_object_int("mental", 0, buffer);
+    set_json_object_int("trust", 0, buffer);
+    set_json_object_int("first_choice", 0, buffer);
+    set_json_object_int("second_choice", 0, buffer);
+    set_json_object_int("third_choice", 0, buffer);
 }
 
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index)
@@ -524,7 +534,6 @@ void print_credits(int y_max, int x_max, char *language)
     WINDOW *drawin;
     WINDOW *drawin_2;
     WINDOW *win;
-    char *language_cpy = strdup(language);
     /* MOVING WINDOW VARs */
     int move_res;
     bool need_switch = false;
@@ -676,7 +685,7 @@ void print_credits(int y_max, int x_max, char *language)
     destroy_win(drawin_2);
     destroy_win(win);
 
-    play_menu(y_max, x_max, language_cpy);
+    play_menu(y_max, x_max, &language);
 }
 
 int reload_credits_win(WINDOW *win, int y_pos, int x_pos)

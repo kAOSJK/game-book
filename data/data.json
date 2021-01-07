@@ -8,9 +8,7 @@
   "agility_speed": 100000,
   "show_debugger": false,
   "default_language": "English",
-  "languages": ["English", "French", "Javanese"],
-  "languages_fr": ["Anglais", "Francais", "Javanais"],
-  "languages_jv": ["Basa inggris", "Prancis", "Wong jawa"],
+  "languages": ["English", "Francais", "Wong jawa"],
   "entry_keys": ["flash1", "quit"],
   "story": [
     {

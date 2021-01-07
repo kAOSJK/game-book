@@ -18,6 +18,8 @@
 #endif
 
 #define IS_LOWER_CASE(c) ((c >= 'a' && c <= 'z'))
+#define GAME_DATA_PATH ("data/data.json")
+#define USER_DATA_PATH ("data/user.json")
 
 typedef struct
 {
@@ -38,7 +40,7 @@ typedef struct
 } chapter;
 
 /* game.c */
-void play_menu(int y_max, int x_max, char *language);
+void play_menu(int y_max, int x_max, char **language);
 
 /* json-lib.c */
 void get_json_array_data(char **data, char *key, char *buffer);
@@ -46,7 +48,7 @@ size_t get_json_options_length(char *key, char *buffer);
 bool get_json_data_boolean(char *key, char *buffer);
 int get_json_data_int(char *key, char *buffer);
 char *get_array_idx_key(char *buffer);
-int set_json_object_int(char *key, const int new_value, char *buffer);
+int set_json_object_int(char *key, const int new_value, char **buffer);
 char *get_json_object_string(const char *key, const char *buffer);
 int set_json_object_string(char *key, const char *new_value, char *buffer);
 char *get_json_object_index_data(const char *object_key, unsigned int index_key, const char *buffer);
@@ -61,16 +63,16 @@ void clear_win(WINDOW *local_win);
 
 /* menu-lib.c */
 int display_menu(int y_max, int x_max, char *language, char *buffer);
-char *display_languages(int y_max, int x_max, char *language, char *buffer);
+char *display_languages(int y_max, int x_max, char *buffer);
 
 /* agility-lib.c */
 bool agility(int y_max, int x_max, int size, int speed);
 
 /* story-lib.c */
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char *language, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer);
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char *language, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char **usr_buffer);
 void write_text(char **story, WINDOW *win, int y_max, int x_max, int speed_0, int speed_1, char *name);
 char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer);
-char *get_part_date(part *dpart, char *language);
+char *get_part_date(part *dpart);
 
 /* game-lib.c */
 char **sentence_separator(char *str, char *separator);
@@ -79,14 +81,15 @@ char *int_to_word_fr(int n);
 char *open_file(char *path, char *access_mode);
 void refresh_windows_vars(int agilityval, int mentalval, int trustval, WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
 void destroy_windows_vars(WINDOW *agilitywin, WINDOW *mentalwin, WINDOW *trustwin);
-int add_agility_value(const int add_value, char *buffer);
-int add_mental_value(const int add_value, char *buffer);
-int add_trust_value(const int add_value, char *buffer);
-int add_first_choice_value(const int add_value, char *buffer);
-int add_second_choice_value(const int add_value, char *buffer);
-int add_third_choice_value(const int add_value, char *buffer);
-int increment_save_chapter_index(char *buffer);
-int reset_save_chapter_index(char *buffer);
+int add_agility_value(const int add_value, char **buffer);
+int add_mental_value(const int add_value, char **buffer);
+int add_trust_value(const int add_value, char **buffer);
+int add_first_choice_value(const int add_value, char **buffer);
+int add_second_choice_value(const int add_value, char **buffer);
+int add_third_choice_value(const int add_value, char **buffer);
+int increment_save_chapter_index(char **buffer);
+void reset_skill_values(char **buffer);
+int reset_save_chapter_index(char **buffer);
 void display_title(int y_max, int x_max, array_list *story, unsigned int chapter_index);
 void print_credits(int y_max, int x_max, char *language);
 int reload_credits_win(WINDOW *win, int y_pos, int x_pos);

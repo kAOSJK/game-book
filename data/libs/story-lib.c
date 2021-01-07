@@ -2,7 +2,7 @@
 
 #define CHAR_SEPARATOR "$"
 
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char *language, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char *usr_buffer)
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char *language, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char **usr_buffer_ptr)
 {
     /* WINDOWS VARs */
     WINDOW *topwin;
@@ -13,6 +13,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
     int width = x_max - 4;
     int bottom_height = y_max / 4;
     /* BASICS VARs*/
+    char *usr_buffer = *usr_buffer_ptr;
     char *title = NULL;
     part *current_part;
     char **text = NULL;
@@ -48,7 +49,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
         mvwaddch(topwin, i, width / 3, ACS_VLINE);
 
     /* GET AND WRITE DATE */
-    date = get_part_date(current_part, language);
+    date = get_part_date(current_part);
     if (date != NULL)
     {
         for (i = 0; date[i]; i++)
@@ -90,7 +91,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
         /* WRITE DATE */
         if (current_part->date != NULL)
         {
-            new_date = get_part_date(current_part, language);
+            new_date = get_part_date(current_part);
 
             /* WRITE IT IF ITS NEW */
             if (strcmp(date, new_date) != 0)
@@ -98,7 +99,7 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
                 free(date);
                 date = NULL;
 
-                date = get_part_date(current_part, language);
+                date = get_part_date(current_part);
                 for (i = 0; date[i]; i++)
                 {
                     mvwprintw(topwin, top_height / 2, (((width / 3) / 2) - (strlen(date) / 2)) + i, "%c", (IS_LOWER_CASE(date[i]) ? date[i] - 32 : date[i]));
@@ -132,20 +133,22 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
             skill_type = strdup(json_object_get_string(json_object_object_get(current_part->upgrade, "skill_type")));
 
             if (strcmp(skill_type, "agility") == 0)
-                add_agility_value(add_value, usr_buffer);
+                add_agility_value(add_value, usr_buffer_ptr);
             else if (strcmp(skill_type, "mental") == 0)
-                add_mental_value(add_value, usr_buffer);
+                add_mental_value(add_value, usr_buffer_ptr);
             else if (strcmp(skill_type, "trust") == 0)
-                add_trust_value(add_value, usr_buffer);
+                add_trust_value(add_value, usr_buffer_ptr);
             else if (strcmp(skill_type, "first_choice") == 0)
-                add_trust_value(add_value, usr_buffer);
+                add_first_choice_value(add_value, usr_buffer_ptr);
             else if (strcmp(skill_type, "second_choice") == 0)
-                add_trust_value(add_value, usr_buffer);
+                add_second_choice_value(add_value, usr_buffer_ptr);
             else if (strcmp(skill_type, "third_choice") == 0)
-                add_trust_value(add_value, usr_buffer);
+                add_third_choice_value(add_value, usr_buffer_ptr);
 
             free(skill_type);
             skill_type = NULL;
+
+            usr_buffer = *usr_buffer_ptr;
         }
 
         if (current_part->next_key != NULL && *current_part->next_key != 0)
@@ -225,7 +228,8 @@ void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_s
         text = sentence_separator(current_part->text, CHAR_SEPARATOR);
     }
 
-    increment_save_chapter_index(usr_buffer);
+    increment_save_chapter_index(usr_buffer_ptr);
+    usr_buffer = *usr_buffer_ptr;
 
     free(title);
     title = NULL;
@@ -323,6 +327,8 @@ char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer)
     json_object *obj_needed_value = NULL;
     char *type = NULL;
     bool encounter_sc = false;
+    int need_value = 0;
+    int user_value = 0;
 
     /* ACTIVATE ARROW KEYS */
     keypad(win, true);
@@ -339,17 +345,27 @@ char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer)
         {
             encounter_sc = true;
             json_object_object_get_ex(array_list_get_idx(choices, i), "needed_value", &obj_needed_value);
-            type = (char *)json_object_get_string(obj_needed_skill);
-            if (json_object_get_int(obj_needed_value) > 0)
+
+            /* GET TYPE AND VALUES */
+            type = strdup((char *)json_object_get_string(obj_needed_skill));
+            need_value = (int)json_object_get_int(obj_needed_value);
+            user_value = get_json_data_int(type, usr_buffer);
+
+            if (need_value > 0)
             {
-                if (get_json_data_int(type, usr_buffer) >= json_object_get_int(obj_needed_value))
+                if (user_value >= need_value)
                     real_options_length++;
             }
-            else if (json_object_get_int(obj_needed_value) < 0)
+            else if (need_value < 0)
             {
-                if (get_json_data_int(type, usr_buffer) <= ((int)json_object_get_int(obj_needed_value) * -1))
+                if (user_value <= need_value * -1)
                     real_options_length++;
             }
+
+            free(type);
+            type = NULL;
+            need_value = 0;
+            user_value = 0;
         }
         else
             real_options_length++;
@@ -433,7 +449,7 @@ char *get_user_choices(WINDOW *win, array_list *choices, char *usr_buffer)
     return answer;
 }
 
-char *get_part_date(part *dpart, char *language)
+char *get_part_date(part *dpart)
 {
     char *date = NULL;
     char *day = NULL;
@@ -457,37 +473,9 @@ char *get_part_date(part *dpart, char *language)
     /* PUT ALL DATE DATA TO DATE CHAR* */
     date = malloc(sizeof(char) * (strlen(day) + strlen(month) + strlen(year)) + 1 + 1 + 1);
 
-    if (strcmp(language, "English") == 0)
-    {
-        strcpy(date, day);
-        strcat(date, " ");
-        strcat(date, month);
-    }
-    else if (strcmp(language, "French") == 0)
-    {
-        strcpy(date, day);
-        strcat(date, " ");
-        strcat(date, month);
-    }
-    else
-    {
-        /* FREEs */
-        free(day);
-        day = NULL;
-
-        free(month);
-        month = NULL;
-
-        free(year);
-        year = NULL;
-
-        free(date);
-        date = NULL;
-
-        fprintf(stderr, "error: unknown language\n");
-        return NULL;
-    }
-
+    strcpy(date, day);
+    strcat(date, " ");
+    strcat(date, month);
     strcat(date, " ");
     strcat(date, year);
 

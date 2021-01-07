@@ -1,8 +1,5 @@
 #include "lib.h"
 
-#define GAME_DATA_PATH ("data/data.json")
-#define USER_DATA_PATH ("data/user.json")
-
 size_t get_json_options_length(char *key, char *buffer)
 {
 	struct json_object *parsed_json; /* json object file */
@@ -37,7 +34,7 @@ void get_json_array_data(char **data, char *key, char *buffer)
 		option = json_object_array_get_idx(options, i);
 		data[i] = strdup((char *)json_object_get_string(option));
 		if (data[i] == NULL)
-			printf("error: bad strdup");
+			fprintf(stderr, "error: bad strdup");
 	}
 
 	json_object_put(parsed_json);
@@ -87,9 +84,9 @@ bool get_json_data_boolean(char *key, char *buffer)
 
 int get_json_data_int(char *key, char *buffer)
 {
-	struct json_object *parsed_json; /* json object file */
-	struct json_object *data;		 /* json object data */
-	int n;
+	struct json_object *parsed_json = NULL; /* json object file */
+	struct json_object *data = NULL;		/* json object data */
+	int n = 0;
 
 	if (key == NULL)
 	{
@@ -129,25 +126,13 @@ int get_json_data_int(char *key, char *buffer)
 
 /* OBJECT ORIENTED JSON-LIB */
 
-char *get_array_idx_key(char *buffer)
+int set_json_object_int(char *key, const int new_value, char **buffer_ptr)
 {
-	char *answer = NULL;
-	char *token;
-
-	token = strtok(buffer, "\"");
-	token = strtok(NULL, "\"");
-
-	answer = malloc(strlen(token) + 1);
-	strcpy(answer, token);
-
-	return answer;
-}
-
-int set_json_object_int(char *key, const int new_value, char *buffer)
-{
-	struct json_object *parsed_json = json_tokener_parse(buffer);
+	struct json_object *parsed_json = NULL; /* json object file */
+	struct json_object *data = NULL;		/* json object data */
+	char *buffer = *buffer_ptr;
 	char *temp = NULL;
-	int res;
+	int res = 0;
 
 	if (!key || *key == 0)
 	{
@@ -161,7 +146,24 @@ int set_json_object_int(char *key, const int new_value, char *buffer)
 		return 0;
 	}
 
-	res = json_object_set_int(json_object_object_get(parsed_json, key), new_value);
+	parsed_json = json_tokener_parse(buffer);
+
+	if (parsed_json == NULL)
+	{
+		fprintf(stderr, "error: parsed_json is null\n");
+		return 0;
+	}
+
+	json_object_object_get_ex(parsed_json, key, &data);
+
+	if (data == NULL)
+	{
+		fprintf(stderr, "error: data is null\n");
+		json_object_put(parsed_json);
+		return 0;
+	}
+
+	res = json_object_set_int(data, new_value);
 
 	if (res == 1)
 		json_object_to_file(USER_DATA_PATH, parsed_json); /* save json file */
@@ -174,7 +176,9 @@ int set_json_object_int(char *key, const int new_value, char *buffer)
 		return 0;
 	}
 
-	strcpy(buffer, temp); /* reload buffer */
+	*buffer_ptr = realloc(buffer, sizeof(char) * strlen(temp) + 1); /* reload buffer */
+	strcpy(*buffer_ptr, temp);
+	buffer = *buffer_ptr;
 
 	free(temp);
 	temp = NULL;
@@ -186,10 +190,10 @@ int set_json_object_int(char *key, const int new_value, char *buffer)
 
 char *get_json_object_string(const char *key, const char *buffer)
 {
-	struct json_object *parsed_json = NULL;
-	struct json_object *obj = NULL;
+	struct json_object *parsed_json = NULL; /* json object file */
+	struct json_object *data = NULL;		/* json object data */
+	char *tmp = NULL;
 	char *str = NULL;
-	int ret;
 
 	if (key == NULL)
 	{
@@ -211,19 +215,27 @@ char *get_json_object_string(const char *key, const char *buffer)
 		return NULL;
 	}
 
-	ret = json_object_object_get_ex(parsed_json, key, &obj);
+	json_object_object_get_ex(parsed_json, key, &data);
 
-	if (obj == NULL || ret == 0)
+	if (data == NULL)
 	{
-		fprintf(stderr, "error: obj is null OR ret is null\n");
+		fprintf(stderr, "error: data is null\n");
+		json_object_put(parsed_json);
 		return NULL;
 	}
 
-	str = strdup((char *)json_object_get_string(obj));
+	tmp = strdup((char *)json_object_get_string(data));
+
+	if (strcmp(tmp, "") != 0)
+		str = strdup((char *)json_object_get_string(data));
+
+	free(tmp);
+	tmp = NULL;
 
 	if (str == NULL)
 	{
 		fprintf(stderr, "error: str after strdup is null\n");
+		json_object_put(parsed_json);
 		return NULL;
 	}
 
@@ -234,8 +246,8 @@ char *get_json_object_string(const char *key, const char *buffer)
 
 int set_json_object_string(char *key, const char *new_value, char *buffer)
 {
-	struct json_object *parsed_json = json_tokener_parse(buffer);
-	char *temp = NULL;
+	struct json_object *parsed_json = NULL; /* json object file */
+	struct json_object *data = NULL;		/* json object data */
 	int res;
 
 	if (!key || *key == 0)
@@ -250,25 +262,45 @@ int set_json_object_string(char *key, const char *new_value, char *buffer)
 		return 0;
 	}
 
-	res = json_object_set_string(json_object_object_get(parsed_json, key), new_value);
+	parsed_json = json_tokener_parse(buffer);
+
+	if (parsed_json == NULL)
+	{
+		fprintf(stderr, "error: parsed_json is null\n");
+		return 0;
+	}
+
+	json_object_object_get_ex(parsed_json, key, &data);
+
+	if (data == NULL)
+	{
+		fprintf(stderr, "error: data is null\n");
+		json_object_put(parsed_json);
+		return 0;
+	}
+
+	res = json_object_set_string(data, new_value);
 
 	if (res == 1)
 		json_object_to_file(USER_DATA_PATH, parsed_json); /* save json file */
 
-	temp = open_file(USER_DATA_PATH, "r");
-
-	if (temp == NULL)
-	{
-		fprintf(stderr, "error: temp buffer is null\n");
-		return 0;
-	}
-
-	free(temp);
-	temp = NULL;
-
 	json_object_put(parsed_json);
 
 	return 1;
+}
+
+char *get_array_idx_key(char *buffer)
+{
+	char *answer = NULL;
+	char *token;
+
+	token = strtok(buffer, "\"");
+	token = strtok(NULL, "\"");
+
+	answer = malloc(strlen(token) + 1);
+	strcpy(answer, token);
+
+	return answer;
 }
 
 void create_player_json_data()

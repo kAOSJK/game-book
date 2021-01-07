@@ -6,8 +6,7 @@
 #define DEFAULT_MAX_NAME_SIZE (10)
 #define DEFAULT_LANGUAGE ("English")
 
-void play_menu(int, int, char *);
-void play_game(int, int, char *, char *, char *, char *);
+void play_game(int, int, char *, char **, char *, char *);
 void play_agility_game(int, int, int, char *);
 char *ask_new_name(int, int, size_t, char *, char *);
 
@@ -18,7 +17,7 @@ int main()
     char *buffer = NULL;
     int y_max, x_max;
 
-    buffer = open_file("data/data.json", "r"); /* get json data file */
+    buffer = open_file(GAME_DATA_PATH, "r"); /* get json data file */
 
     if (buffer == NULL) /* if the file does not exist, exit*/
         return 0;
@@ -36,53 +35,47 @@ int main()
     curs_set(0);
 
     /* PLAY THE MENU */
-    play_menu(y_max, x_max, language);
+    play_menu(y_max, x_max, &language);
 
     free(buffer);
     buffer = NULL;
+
+    free(language);
+    language = NULL;
 
     endwin(); /* end ncurses */
 
     return 0;
 }
 
-void play_menu(int y_max, int x_max, char *language)
+void play_menu(int y_max, int x_max, char **language_ptr)
 {
     /* BASIC VARs */
-    char *languages_answer = NULL;
     int menu_answer;
     int agility_speed;
+    char *language = *language_ptr;
     /* JSON VARs */
     char *usr_buffer = NULL;
     char *buffer = NULL;
-    FILE *user = NULL;
     /* NAME VARs */
     char *name = NULL;
     int max_name_size;
 
     /* READ AND GET JSON DATA */
-    user = fopen("data/user.json", "r");
-
-    buffer = open_file("data/data.json", "r");
-
-    /*
-    printw("current language is: %s", language);
-    refresh();
-    getchar();*/
+    usr_buffer = open_file(USER_DATA_PATH, "r");
+    buffer = open_file(GAME_DATA_PATH, "r");
 
     /* DISPLAY THE GAME MENU */
     menu_answer = display_menu(y_max, x_max, language, buffer);
 
-    /* TODO: choose language
-    Polyglot : The game supports at least one language other than english */
-
     /* MENU PLAYER CHOICE */
     if (menu_answer == 0)
     {
-        if (user == NULL)              /* means that the user play for the first time */
-            create_player_json_data(); /* after this function call, the file user.json is created */
-
-        usr_buffer = open_file("data/user.json", "r"); /* open user file */
+        if (usr_buffer == NULL) /* means that the user play for the first time */
+        {
+            create_player_json_data();                   /* after this function call, the file user.json is created */
+            usr_buffer = open_file(USER_DATA_PATH, "r"); /* open user file */
+        }
 
         name = get_json_object_string("name", usr_buffer); /* get the player name key */
         if (!name || *name == 0)                           /* if it's empty, ask again a name */
@@ -91,9 +84,6 @@ void play_menu(int y_max, int x_max, char *language)
             if (!max_name_size)
                 max_name_size = DEFAULT_MAX_NAME_SIZE;
 
-            free(name);
-            name = NULL;
-
             name = ask_new_name(y_max, x_max, max_name_size, language, buffer);
 
             set_json_object_string("name", name, usr_buffer);
@@ -101,11 +91,10 @@ void play_menu(int y_max, int x_max, char *language)
             /* RELOAD USER BUFFER */
             free(usr_buffer);
             usr_buffer = NULL;
-
-            usr_buffer = open_file("data/user.json", "r");
+            usr_buffer = open_file(USER_DATA_PATH, "r");
         }
 
-        play_game(y_max, x_max, buffer, usr_buffer, name, language);
+        play_game(y_max, x_max, buffer, &usr_buffer, name, language);
     }
     else if (menu_answer == 1)
     {
@@ -117,26 +106,27 @@ void play_menu(int y_max, int x_max, char *language)
     }
     else if (menu_answer == 2)
     {
-        languages_answer = display_languages(y_max, x_max, language, buffer);
+        free(*language_ptr);
+        *language_ptr = NULL;
 
-        if (languages_answer != NULL)
+        *language_ptr = display_languages(y_max, x_max, buffer);
+
+        language = *language_ptr;
+
+        /* TODO: corriger valgrind error here look for val.txt */
+        if (language == NULL)
         {
-            /*
-            printw("new language incoming is: %s", languages_answer);
-            refresh();
-            getchar();*/
+            *language_ptr = strdup(DEFAULT_LANGUAGE);
+            language = *language_ptr;
 
-            play_menu(y_max, x_max, languages_answer);
+            fprintf(stderr, "error: unknown choosen language\n");
         }
+
+        play_menu(y_max, x_max, language_ptr);
     }
     else if (menu_answer == 3)
     {
         print_credits(y_max, x_max, language);
-    }
-
-    if (user)
-    {
-        fclose(user);
     }
 
     /* FREES */
@@ -148,23 +138,22 @@ void play_menu(int y_max, int x_max, char *language)
 
     free(name);
     name = NULL;
-
-    free(language);
-    language = NULL;
 }
 
-void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name, char *language)
+void play_game(int y_max, int x_max, char *buffer, char **usr_buffer_ptr, char *name, char *language)
 {
     /* STORY JSON VARs */
-    struct json_object *parsed_json;
-    struct array_list *parsed_story;
+    struct json_object *parsed_json = NULL;
+    struct array_list *parsed_story = NULL;
     chapter **story;
     /* STORY DATA VARs */
-    unsigned int saved_chapter_index;
-    unsigned int story_length;
+    unsigned int saved_chapter_index = 0;
+    unsigned int story_length = 0;
     unsigned int speed_0, speed_1;
     unsigned int agility_speed;
     unsigned int i;
+    /* USER DATA VARs */
+    char *usr_buffer = *usr_buffer_ptr;
 
     /* GET GAME SETTINGS DATA */
     speed_0 = get_json_data_int("text_speed_0", buffer); /* default text speed */
@@ -183,10 +172,25 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name,
     /* GET GAME STORY DATA */
     if (strcmp(language, "English") == 0)
         parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
-    else if (strcmp(language, "French") == 0)
+    else if (strcmp(language, "Francais") == 0) /* TODO: load story_fr here */
         parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
     else /* load default language game story data */
-        parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
+    {
+        /* MESSAGE OF BAD CHOOSED LANGUAGE */
+        clear();
+        printw("\nTranslation of the choosen language is not finished, switching to the default language\n\nYou can change at any moment the default language in the data.json file");
+        refresh();
+        getchar();
+
+        /* CLEAR */
+        clear();
+        refresh();
+
+        if (strcmp(DEFAULT_LANGUAGE, "English") == 0)
+            parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
+        else if (strcmp(DEFAULT_LANGUAGE, "Francais") == 0) /* TODO: load story_fr here */
+            parsed_story = json_object_get_array(json_object_object_get(parsed_json, "story"));
+    }
 
     /* STORE DATA */
     story = get_story_data(parsed_story, buffer);
@@ -208,14 +212,19 @@ void play_game(int y_max, int x_max, char *buffer, char *usr_buffer, char *name,
         display_title(y_max, x_max, parsed_story, i);
 
         /* BEGIN THE CHAPTER */
-        begin_chapter(y_max, x_max, speed_0, speed_1, agility_speed, language, story[i], i, parsed_story, name, buffer, usr_buffer);
+        begin_chapter(y_max, x_max, speed_0, speed_1, agility_speed, language, story[i], i, parsed_story, name, buffer, usr_buffer_ptr);
+        usr_buffer = *usr_buffer_ptr;
     }
 
     free_story_data(story);
     json_object_put(parsed_json); /* if res == 1 mean that it's a success */
 
-    /* RESET SAVED CHAPTER INDEX */
-    reset_save_chapter_index(usr_buffer);
+    /* RESET SAVED CHAPTER INDEX AND SKILLS */
+    reset_save_chapter_index(usr_buffer_ptr);
+    usr_buffer = *usr_buffer_ptr;
+
+    reset_skill_values(usr_buffer_ptr);
+    usr_buffer = *usr_buffer_ptr;
 
     /* PRINT CREDITS OF THE GAME AND GO BACK TO THE MENU */
     print_credits(y_max, x_max, language);
@@ -244,8 +253,12 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *language, char *
 
     if (strcmp(language, "English") == 0)
         ask = strdup("Enter your name:");
-    else if (strcmp(language, "French") == 0)
+    else if (strcmp(language, "Francais") == 0)
         ask = strdup("Entrer votre nom:");
+    else if (strcmp(language, "Wong jawa") == 0)
+        ask = strdup("Ketik jeneng sampeyan:");
+    else
+        ask = strdup("Enter your name:");
 
     for (i = 0; ask[i]; i++)
     {
@@ -315,7 +328,6 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
 {
     /* BASICS VARs */
     WINDOW *win;
-    char *language_cpy = strdup(language);
     int height = y_max / 4;
     int width = x_max - 4;
     unsigned int score = 0;
@@ -334,8 +346,10 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
                 box(win, 0, 0);
                 if (strcmp(language, "English") == 0)
                     mvwprintw(win, 1, 2, "You have passed the %s agility test", int_to_word(i));
-                else if (strcmp(language, "French") == 0)
+                else if (strcmp(language, "Francais") == 0)
                     mvwprintw(win, 1, 2, "Vous avez reussi le %s test d'agilite", int_to_word_fr(i));
+                else if (strcmp(language, "Wong jawa") == 0)
+                    mvwprintw(win, 1, 2, "Sampeyan wis lolos tes katrampilan iki");
 
                 if (wgetch(win) == 10)
                     break;
@@ -350,8 +364,10 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
                 box(win, 0, 0);
                 if (strcmp(language, "English") == 0)
                     mvwprintw(win, 1, 2, "You failed the %s agility test", int_to_word(i));
-                else if (strcmp(language, "French") == 0)
+                else if (strcmp(language, "Francais") == 0)
                     mvwprintw(win, 1, 2, "Vous avez echoue au %s test d'agilite", int_to_word_fr(i));
+                else if (strcmp(language, "Wong jawa") == 0)
+                    mvwprintw(win, 1, 2, "Sampeyan gagal tes katrampilan iki");
 
                 if (wgetch(win) == 10)
                     break;
@@ -368,15 +384,19 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
     {
         if (strcmp(language, "English") == 0)
             mvwprintw(win, 1, 2, "Good job ! your score is: %d out of 10", score);
-        else if (strcmp(language, "French") == 0)
+        else if (strcmp(language, "Francais") == 0)
             mvwprintw(win, 1, 2, "Bien joue ! votre score est: %d sur 10", score);
+        else if (strcmp(language, "Wong jawa") == 0)
+            mvwprintw(win, 1, 2, "Game apik! skor sampeyan: %d saka 10", score);
     }
     else
     {
         if (strcmp(language, "English") == 0)
             mvwprintw(win, 1, 2, "Your score is: %d out of 10", score);
-        else if (strcmp(language, "French") == 0)
+        else if (strcmp(language, "Francais") == 0)
             mvwprintw(win, 1, 2, "Votre score est: %d sur 10", score);
+        else if (strcmp(language, "Wong jawa") == 0)
+            mvwprintw(win, 1, 2, "Skor sampeyan: %d saka 10", score);
     }
 
     while (1)
@@ -387,5 +407,5 @@ void play_agility_game(int y_max, int x_max, int speed, char *language)
 
     destroy_win(win);
 
-    play_menu(y_max, x_max, language_cpy);
+    play_menu(y_max, x_max, &language);
 }

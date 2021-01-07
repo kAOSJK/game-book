@@ -25,9 +25,9 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
     /* GET LANGUAGE */
     if (strcmp(language, "English") == 0)
         menu_key = strdup("menu");
-    else if (strcmp(language, "French") == 0)
+    else if (strcmp(language, "Francais") == 0)
         menu_key = strdup("menu_fr");
-    else if (strcmp(language, "Javanese") == 0)
+    else if (strcmp(language, "Wong jawa") == 0)
         menu_key = strdup("menu_jv");
     else
     {
@@ -122,9 +122,8 @@ int display_menu(int y_max, int x_max, char *language, char *buffer)
     return highlight;
 }
 
-char *display_languages(int y_max, int x_max, char *language, char *buffer)
+char *display_languages(int y_max, int x_max, char *buffer)
 {
-    char *menu_key = NULL;
     /* WINDOWS VARs */
     WINDOW *menuwin;
     WINDOW *drawin;
@@ -136,24 +135,11 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     char *draw_1 = NULL;
     /* DATA VARs */
     char **choices = NULL;
-    char **real_choices = NULL;
     char *answer = NULL;
     int options_length;
     int choice;
     int i;
     int highlight = 0;
-
-    if (strcmp(language, "English") == 0)
-        menu_key = strdup("languages");
-    else if (strcmp(language, "French") == 0)
-        menu_key = strdup("languages_fr");
-    else if (strcmp(language, "Javanese") == 0)
-        menu_key = strdup("languages_jv");
-    else
-    {
-        fprintf(stderr, "error: unknown language\n");
-        return NULL;
-    }
 
     /* CREATE DRAWINGS WINDOWS */
     drawin = newwin(DRAW_HEIGHT, DRAW_WIDTH, y_max / 2 - (DRAW_HEIGHT / 2), x_max / 2 - (DRAW_WIDTH / 2) - DRAW_WIDTH + 5);
@@ -179,13 +165,11 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     /* ACTIVATE ARROW KEYS */
     keypad(menuwin, true);
 
-    options_length = get_json_options_length(menu_key, buffer);
+    options_length = get_json_options_length("languages", buffer);
     choices = malloc(sizeof(char *) * options_length);
-    real_choices = malloc(sizeof(char *) * options_length);
 
     /* GET JSON FILE DATA */
-    get_json_array_data(choices, menu_key, buffer);
-    get_json_array_data(real_choices, "languages", buffer);
+    get_json_array_data(choices, "languages", buffer);
 
     while (1)
     {
@@ -215,12 +199,7 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
             break;
     }
 
-    /*
-    printw("found language: %s\n", real_choices[highlight]);
-    refresh();
-    getchar();*/
-
-    answer = strdup(real_choices[highlight]);
+    answer = strdup(choices[highlight]);
 
     for (i = 0; i < options_length; i++)
     {
@@ -231,18 +210,6 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     free(choices);
     choices = NULL;
 
-    for (i = 0; i < options_length; i++)
-    {
-        free(real_choices[i]);
-        real_choices[i] = NULL;
-    }
-
-    free(real_choices);
-    real_choices = NULL;
-
-    free(menu_key);
-    menu_key = NULL;
-
     free(draw_0);
     draw_0 = NULL;
 
@@ -250,6 +217,8 @@ char *display_languages(int y_max, int x_max, char *language, char *buffer)
     draw_1 = NULL;
 
     destroy_win(menuwin);
+    destroy_win(drawin);
+    destroy_win(drawin_2);
 
     return answer;
 }
