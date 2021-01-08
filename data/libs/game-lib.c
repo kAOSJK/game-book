@@ -529,7 +529,7 @@ void free_story_data(chapter **story)
     story = NULL;
 }
 
-void print_credits(int y_max, int x_max, char *language)
+void print_credits(int y_max, int x_max)
 {
     WINDOW *drawin;
     WINDOW *drawin_2;
@@ -684,8 +684,6 @@ void print_credits(int y_max, int x_max, char *language)
     destroy_win(drawin);
     destroy_win(drawin_2);
     destroy_win(win);
-
-    play_menu(y_max, x_max, &language);
 }
 
 int reload_credits_win(WINDOW *win, int y_pos, int x_pos)

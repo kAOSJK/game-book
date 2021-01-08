@@ -3,8 +3,9 @@
 #define DRAW_HEIGHT (9)
 #define DRAW_WIDTH (33)
 
-int display_menu(int y_max, int x_max, char *language, char *buffer)
+int display_menu(int y_max, int x_max, char **language_ptr, char *buffer)
 {
+    char *language = *language_ptr;
     char *menu_key = NULL;
     /* WINDOWS VARs */
     WINDOW *menuwin;

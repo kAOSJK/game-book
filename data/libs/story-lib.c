@@ -2,7 +2,7 @@
 
 #define CHAR_SEPARATOR "$"
 
-void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char *language, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char **usr_buffer_ptr)
+void begin_chapter(int y_max, int x_max, int speed_0, int speed_1, int agility_speed, char **language_ptr, chapter *chap, unsigned int chapter_index, array_list *parsed_story, char *name, char *buffer, char **usr_buffer_ptr)
 {
     /* WINDOWS VARs */
     WINDOW *topwin;
