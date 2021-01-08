@@ -1,11 +1,5 @@
 #include "data/libs/lib.h"
 
-#define DEFAULT_TEXT_SPEED_0 (50000)
-#define DEFAULT_TEXT_SPEED_1 (10000)
-#define DEFAULT_AGILITY_SPEED (10000)
-#define DEFAULT_MAX_NAME_SIZE (10)
-#define DEFAULT_LANGUAGE ("English")
-
 void play_game(int, int, char *, char **, char *, char **);
 void play_agility_game(int, int, int, char *, char *);
 char *ask_new_name(int, int, size_t, char *, char *);
@@ -111,7 +105,6 @@ void play_menu(int y_max, int x_max, char **language_ptr, char *buffer)
 
         language = *language_ptr;
 
-        /* TODO: corriger valgrind error here look for val.txt */
         if (language == NULL)
         {
             *language_ptr = strdup(DEFAULT_LANGUAGE);
@@ -323,6 +316,7 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *language, char *
     unsigned int k = 0;
     int wait_time; /* text speed */
     int c;         /* user char entry */
+    int dicr = 0;
 
     /* WINDOW SETTINGS */
     win = create_newwin(8, x_max - 4, y_max - 9, 2);
@@ -358,12 +352,21 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *language, char *
         c = wgetch(win);
         if (c == 10)
             break;
-        else if (c == 127)
+        else if (c == 127 || c == 8)
         {
-            temp[j] = 0;
-            j--;
-            temp[j] = 0;
-            j--;
+            if (j > 1)
+            {
+                temp[j] = 0;
+                j--;
+                temp[j] = 0;
+                j--;
+            }
+            else
+            {
+                j--;
+                temp[j] = 0;
+                dicr = -1;
+            }
         }
         else
             temp[j] = c;
@@ -374,7 +377,10 @@ char *ask_new_name(int y_max, int x_max, size_t max_size, char *language, char *
             mvwprintw(win, 1, 2 + i + k + 1, "%c", temp[k]);
 
         wrefresh(win);
-        j++;
+        if (dicr != -1)
+            j++;
+        else
+            dicr = 0;
     }
 
     temp[j] = 0;

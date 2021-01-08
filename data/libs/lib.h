@@ -20,6 +20,11 @@
 #define IS_LOWER_CASE(c) ((c >= 'a' && c <= 'z'))
 #define GAME_DATA_PATH ("data/data.json")
 #define USER_DATA_PATH ("data/user.json")
+#define DEFAULT_TEXT_SPEED_0 (17500)
+#define DEFAULT_TEXT_SPEED_1 (5000)
+#define DEFAULT_AGILITY_SPEED (100000)
+#define DEFAULT_MAX_NAME_SIZE (10)
+#define DEFAULT_LANGUAGE ("English")
 
 typedef struct
 {
